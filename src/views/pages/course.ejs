@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            
+            <a href="/" class="btn btn-outline-secondary mb-4">
+                <i class="bi bi-arrow-left me-2"></i>Tüm Dersler
+            </a>
+            
+            <div class="page-title mb-4">
+                <h1 class="display-5 fw-bold text-dark"><%= course.title %></h1>
+                <p class="lead text-muted"><%= course.description %></p>
+            </div>
+
+            <div class="card note-list-card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Ders Notları</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <% if (course.Notes && course.Notes.length > 0) { %>
+                        <% course.Notes.forEach(note => { %>
+                            <a href="/notlar/<%= note.id %>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-file-earmark-text me-2 text-primary"></i><%= note.title %></span>
+                                <span class="text-primary"><i class="bi bi-arrow-right"></i></span>
+                            </a>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="list-group-item text-muted">
+                            Bu derse ait gösterilecek not bulunamadı.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

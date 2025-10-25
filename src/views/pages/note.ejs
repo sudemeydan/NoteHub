@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            
+            <a href="/dersler/<%= note.Course.id %>" class="btn btn-outline-secondary mb-4">
+                <i class="bi bi-arrow-left me-2"></i> <%= note.Course.title %> Dersine Geri Dön
+            </a>
+            
+            <div class="note-content-wrapper">
+                <div class="note-content-header">
+                    <h1>
+                        <i class="bi bi-file-earmark-text text-primary"></i>
+                        <%= note.title %>
+                    </h1>
+                </div>
+
+                <div class="note-content">
+                    <%- note.content %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= course.title %> - Notları</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
+        .back-link { text-decoration: none; background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; font-size: 14px; }
+        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid transparent; }
+        .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .content-section { margin-top: 2rem; }
+        /* Form stilini biraz iyileştirelim */
+        form.add-note-form { background: #f1f3f5; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input[type="text"] { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button[type="submit"] { padding: 0.75rem 1.5rem; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+
+        .note-list ul { list-style: none; padding: 0; }
+        .note-item { background: #fff; border: 1px solid #eee; padding: 1rem; margin-bottom: 0.5rem; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .note-actions { display: flex; align-items: center; }
+        .edit-btn { background-color: #17a2b8; color: white; padding: 8px 12px; border-radius: 4px; font-size: 14px; text-decoration: none; margin-right: 10px; }
+        .edit-btn:hover { background-color: #117a8b; }
+        .delete-btn { background-color: #e74c3c; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; }
+        .delete-btn:hover { background-color: #c0392b; }
+        /* TinyMCE'nin düzgün görünmesi için */
+        .tox-tinymce { border-radius: 4px; border: 1px solid #ccc; }
+    </style>
+
+    <script src="https://cdn.tiny.cloud/1/dbfoddc7963afdggl3fumyvolo4ohwo674afcs79y2uhav7h/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() { // Sayfa tamamen yüklendikten sonra başlat
+        tinymce.init({
+          selector: '#note-content-editor', // Bu ID'yi hedefle
+          plugins: 'code table lists image link media',
+          toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | image | link | media',
+          height: 400
+        });
+      });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Ders: <%= course.title %></h2>
+            <a href="/admin/dashboard" class="back-link">Panele Geri Dön</a>
+        </div>
+
+        <% if (success_msg && success_msg.length > 0) { %><div class="alert alert-success"><%= success_msg %></div><% } %>
+        <% if (error_msg && error_msg.length > 0) { %><div class="alert alert-danger"><%= error_msg %></div><% } %>
+
+        <div class="content-section">
+            <h3>Yeni Not Ekle</h3>
+            <form action="/admin/notes/create" method="POST" class="add-note-form">
+                <input type="hidden" name="courseId" value="<%= course.id %>">
+
+                <div class="form-group">
+                    <label for="title">Not Başlığı</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="note-content-editor">İçerik</label>
+                    <textarea id="note-content-editor" name="content"></textarea>
+                </div>
+
+                <button type="submit">Notu Kaydet</button>
+            </form>
+        </div>
+
+        <div class="content-section">
+            <h3>Bu Derse Ait Notlar</h3>
+            <div class="note-list">
+                <% if (course.Notes && course.Notes.length > 0) { %>
+                    <ul>
+                        <% course.Notes.forEach(note => { %>
+                            <li class="note-item">
+                                <strong><%= note.title %></strong>
+                                <div class="note-actions">
+                                    <a href="/admin/notes/edit/<%= note.id %>" class="edit-btn">Düzenle</a>
+                                    <form action="/admin/notes/delete" method="POST" onsubmit="return confirm('Bu notu kalıcı olarak silmek istediğinizden emin misiniz?');" style="margin: 0;">
+                                        <input type="hidden" name="noteId" value="<%= note.id %>">
+                                        <input type="hidden" name="courseId" value="<%= course.id %>">
+                                        <button type="submit" class="delete-btn">Sil</button>
+                                    </form>
+                                </div>
+                            </li>
+                        <% }) %>
+                    </ul>
+                <% } else { %>
+                    <p>Bu derse henüz hiç not eklenmemiş.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

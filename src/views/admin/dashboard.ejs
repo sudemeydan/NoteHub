@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        body { font-family: sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
+        .logout-btn { text-decoration: none; background-color: #dc3545; color: white; padding: 10px 15px; border-radius: 5px; font-size: 14px; }
+        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid transparent; }
+        .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .content-section { margin-top: 2rem; }
+        form { background: #f1f3f5; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        input, textarea { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 0.75rem 1.5rem; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+
+        /* DERS LİSTESİ VE SİL BUTONU İÇİN STİLLER */
+        .course-list ul { list-style: none; padding: 0; }
+        .course-item {
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+            display: flex; /* İçeriği yan yana getir */
+            justify-content: space-between; /* Aralarına boşluk koy */
+            align-items: center; /* Dikeyde ortala */
+        }
+        .course-info {
+            flex-grow: 1; /* Başlık ve açıklama alanı genişlesin */
+            margin-right: 1rem; /* Butonla arasına boşluk */
+        }
+        .course-info a { /* Ders başlığı linki */
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            font-size: 1.1rem; /* Başlık biraz daha büyük */
+        }
+        .course-info a:hover {
+            text-decoration: underline;
+        }
+        .course-info small { /* Açıklama */
+            color: #6c757d;
+            display: block; /* Alt satıra geçsin */
+            margin-top: 0.25rem;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            white-space: nowrap; /* "Dersi Sil" yazısı alta kaymasın */
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        /* STİL SONU */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2><%= title %></h2>
+            <span>Hoş geldin, <strong><%= user.username %>!</strong> <a href="/admin/logout" class="logout-btn">Çıkış Yap</a></span>
+        </div>
+
+        <% if (success_msg && success_msg.length > 0) { %><div class="alert alert-success"><%= success_msg %></div><% } %>
+        <% if (error_msg && error_msg.length > 0) { %><div class="alert alert-danger"><%= error_msg %></div><% } %>
+
+        <div class="content-section">
+            <h3>Yeni Ders Ekle</h3>
+            <form action="/admin/courses/create" method="POST">
+                <div class="form-group">
+                    <label for="title">Ders Başlığı</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Açıklama (Opsiyonel)</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+                </div>
+                <button type="submit">Ders Ekle</button>
+            </form>
+        </div>
+
+        <div class="content-section">
+            <h3>Mevcut Dersler</h3>
+            <div class="course-list">
+                <% if (courses && courses.length > 0) { %> <ul>
+                        <% courses.forEach(course => { %>
+                            <li class="course-item">
+                                <div class="course-info">
+                                    <a href="/admin/courses/<%= course.id %>">
+                                        <%= course.title %>
+                                    </a>
+                                    <small><%= course.description %></small>
+                                </div>
+                                
+                                <form action="/admin/courses/delete" method="POST" onsubmit="return confirm('Bu dersi ve içindeki TÜM notları kalıcı olarak silmek istediğinizden emin misiniz? BU İŞLEM GERİ ALINAMAZ!');" style="margin: 0;">
+                                    <input type="hidden" name="courseId" value="<%= course.id %>">
+                                    <button type="submit" class="delete-btn">Dersi Sil</button>
+                                </form>
+                            </li>
+                        <% }) %>
+                    </ul>
+                <% } else { %>
+                    <p>Henüz hiç ders eklenmemiş.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
