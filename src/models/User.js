@@ -16,6 +16,12 @@ const User = sequelize.define('User', {
     password: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    // --- YENİ EKLENEN ALAN ---
+    role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'user' // Varsayılan rol 'user'
     }
 }, {
     // Diğer model seçenekleri

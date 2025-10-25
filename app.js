@@ -4,66 +4,75 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const flash = require('connect-flash');
 
-// Veritabanı ve modelleri import et
+// Import database and models
 const db = require('./src/models');
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
+// Middleware for static files and form data parsing
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Make uploads folder accessible
 app.use(express.urlencoded({ extended: true }));
 
-// Session ve Flash Middleware ayarları
+// Session and Flash Middleware configuration
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET, // Use a strong secret from .env
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24
+        maxAge: 1000 * 60 * 60 * 24 // Cookie valid for 1 day
     }
 }));
-app.use(flash());
+app.use(flash()); // Enable flash messages
 
-// Global değişkenler (tüm view'lara gönderilir)
+// Global variables middleware (accessible in all views)
+// UPDATED: Now checks for both admin and regular user sessions
 app.use((req, res, next) => {
-    res.locals.user = req.session.user;
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
+    res.locals.isAdminLoggedIn = req.session.isLoggedIn || false; // Check admin login status
+    res.locals.isUserLoggedIn = req.session.isUserLoggedIn || false; // Check regular user login status
+    res.locals.currentUser = req.session.user || null; // User info (id, username, role) from session
+    res.locals.success_msg = req.flash('success_msg'); // Success flash messages
+    res.locals.error_msg = req.flash('error_msg');   // Error flash messages
     next();
 });
 
-// --- ROTA TANIMLAMALARI ---
-const viewRoutes = require('./src/routes/viewRoutes.js');
-const authRoutes = require('./src/routes/authRoutes');
-const courseRoutes = require('./src/routes/courseRoutes');
-const noteRoutes = require('./src/routes/noteRoutes');
+// --- ROUTE DEFINITIONS ---
+const viewRoutes = require('./src/routes/viewRoutes.js');           // Routes for public pages (home, course, note)
+const authRoutes = require('./src/routes/authRoutes');             // Routes for ADMIN authentication (login, logout, dashboard)
+const courseRoutes = require('./src/routes/courseRoutes');         // Routes for ADMIN course management (create, delete)
+const noteRoutes = require('./src/routes/noteRoutes');             // Routes for ADMIN note management (create, delete, edit, update)
+const userAuthRoutes = require('./src/routes/userAuthRoutes');     // **NEW**: Routes for USER authentication (signup, login, logout)
 
-// Rotaların Uygulamaya Tanıtılması
-app.use('/', viewRoutes);
-app.use('/admin', authRoutes);
-app.use('/admin', courseRoutes);
-app.use('/admin', noteRoutes);
+// --- REGISTERING ROUTES ---
+app.use('/', viewRoutes);                 // Handle '/', '/dersler/:id', '/notlar/:id'
+app.use('/', userAuthRoutes);             // **NEW**: Handle '/kayit', '/giris', '/cikis' (No '/admin' prefix!)
+app.use('/admin', authRoutes);            // Handle '/admin/', '/admin/login', '/admin/logout', '/admin/dashboard'
+app.use('/admin', courseRoutes);          // Handle '/admin/courses/create', '/admin/courses/:id', '/admin/courses/delete'
+app.use('/admin', noteRoutes);            // Handle '/admin/notes/create', '/admin/notes/delete', '/admin/notes/edit/:id', '/admin/notes/update'
 // ------------------------------------------
 
-// Veritabanı bağlantısını test et ve sunucuyu başlat
+// Function to connect to DB and start the server
 async function startServer() {
     try {
         await db.sequelize.authenticate();
-        console.log('Veritabanı bağlantısı başarıyla kuruldu.');
+        console.log('Veritabanı bağlantısı başarıyla kuruldu.'); // Database connection successful
 
-        await db.sequelize.sync({ force: false });
-        console.log('Tablolar başarıyla senkronize edildi.');
+        await db.sequelize.sync({ force: false }); // Sync models with the database
+        console.log('Tablolar başarıyla senkronize edildi.'); // Tables synced
 
         app.listen(PORT, () => {
-            console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+            console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`); // Server is running
         });
     } catch (error) {
-        console.error('Veritabanına bağlanılamadı:', error);
+        console.error('Veritabanına bağlanılamadı:', error); // Database connection failed
     }
 }
 
+// Start the server
 startServer();

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> | Ders Notları</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -25,30 +25,43 @@
                 <i class="bi bi-journal-bookmark-fill me-2"></i>
                 Ders Notları
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse justify-content-end" id="mainNavbar">
                 <ul class="navbar-nav mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="bi bi-search"></i> Ara</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="bi bi-person"></i> Üyeliğim</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="bi bi-archive"></i> Arşiv</a>
-                    </li>
-                </ul>
-                <div class="social-icons ms-lg-3">
+                    <% if (isUserLoggedIn || isAdminLoggedIn) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i> <%= currentUser.username %>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <% if (isAdminLoggedIn) { %>
+                                    <li><a class="dropdown-item" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Admin Paneli</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                <% } %>
+                                <li><a class="dropdown-item" href="/cikis"><i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap</a></li>
+                            </ul>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/giris"><i class="bi bi-box-arrow-in-right me-1"></i>Giriş Yap</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/kayit"><i class="bi bi-person-plus-fill me-1"></i>Kayıt Ol</a>
+                        </li>
+                    <% } %>
+
+                    </ul>
+                <div class="social-icons ms-lg-3 d-none d-lg-block">
                     <a href="#" class="btn btn-outline-light btn-sm me-1"><i class="bi bi-github"></i></a>
                     <a href="#" class="btn btn-outline-light btn-sm me-1"><i class="bi bi-linkedin"></i></a>
                     <a href="#" class="btn btn-outline-light btn-sm"><i class="bi bi-twitter"></i></a>
                 </div>
             </div>
-        </div>
+        </div> 
     </nav>
 
     <main class="container-fluid py-5">

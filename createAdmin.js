@@ -18,14 +18,22 @@ async function createAdminUser() {
     console.log('Yönetici oluşturma betiği başlatılıyor...');
 
     try {
-        // Veritabanı ile senkronizasyonu sağla
-        await db.sequelize.sync();
+        // Veritabanı ile senkronizasyonu sağla (tablo yoksa oluşturur)
+        // Migration'ları çalıştırdıysanız bu satıra gerek olmayabilir ama zarar vermez.
+        await db.sequelize.sync(); 
 
         // Mevcut yönetici kullanıcısını kontrol et
         const existingAdmin = await db.User.findOne({ where: { username: ADMIN_USERNAME } });
 
         if (existingAdmin) {
-            console.log(`'${ADMIN_USERNAME}' adlı kullanıcı zaten mevcut. İşlem yapılmadı.`);
+            // Eğer kullanıcı varsa ama rolü admin değilse, rolünü güncelle
+            if (existingAdmin.role !== 'admin') {
+                existingAdmin.role = 'admin';
+                await existingAdmin.save();
+                console.log(`'${ADMIN_USERNAME}' adlı kullanıcının rolü 'admin' olarak güncellendi.`);
+            } else {
+                console.log(`'${ADMIN_USERNAME}' adlı yönetici kullanıcı zaten mevcut. İşlem yapılmadı.`);
+            }
             return;
         }
 
@@ -36,7 +44,8 @@ async function createAdminUser() {
         // Yeni kullanıcıyı oluştur
         await db.User.create({
             username: ADMIN_USERNAME,
-            password: hashedPassword
+            password: hashedPassword,
+            role: 'admin' // <-- EKLENEN/GÜNCELLENEN SATIR
         });
 
         console.log('----------------------------------------------------');
