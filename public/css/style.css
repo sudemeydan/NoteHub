@@ -17,6 +17,7 @@ body {
 .container-fluid {
     padding-left: 0;
     padding-right: 0;
+    position: relative;
 }
 
 .container {
@@ -320,4 +321,41 @@ code[class*="language-"] {
 }
 .list-group-item.list-group-item-action:hover .text-primary {
     color: var(--text-light) !important;
+}
+
+
+
+/* =================================== */
+/* 10. KULLANICI GİRİŞ/KAYIT SAYFALARI */
+/* =================================== */
+
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+    height: 100%; 
+    padding: 2rem 0 !important;
+    background-image: url('/img/kayit-gorsel.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background-position: fixed;
+}
+
+.auth-card {
+    max-width: 450px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Kayan etiketli formların içini de yarı saydam yapar */
+.form-floating > .form-control {
+    background-color: transparent !important;
 }

@@ -9,6 +9,13 @@ const db = require('./src/models');
 
 dotenv.config();
 const app = express();
+// --- YENİ EKLENEN KOD ---
+// Geliştirme ortamında EJS view cache'ini kapat
+if (process.env.NODE_ENV !== 'production') {
+  app.disable('view cache');
+  console.log("!!! Express view cache KAPATILDI !!!"); // Terminalde görmek için
+}
+// --- YENİ KOD SONU ---
 const PORT = process.env.PORT || 3000;
 
 // Set EJS as the view engine
