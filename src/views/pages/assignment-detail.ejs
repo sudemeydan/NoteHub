@@ -1,0 +1,80 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            
+            <a href="/odevlerim" class="btn btn-outline-secondary mb-4">
+                <i class="bi bi-arrow-left me-2"></i>Tüm Ödevler Listesine Dön
+            </a>
+
+            <%- include('../partials/messages') %>
+
+            <div class="card note-list-card shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Ödev Detayları</h5>
+                </div>
+                <div class="card-body p-4">
+                    <h2 class="card-title text-primary"><%= assignment.title %></h2>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <i class="bi bi-person-fill"></i> Hoca: <%= assignment.Teacher.username %> | 
+                        <i class="bi bi-calendar-event"></i> Son Teslim: 
+                        <%= assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('tr-TR', {day: '2-digit', month: 'long', year: 'numeric'}) : 'Belirtilmemiş' %>
+                    </h6>
+                    <hr>
+                    <p class="card-text"><%= assignment.description %></p>
+
+                    <% if (assignment.filePath) { %>
+                        <a href="<%= assignment.filePath %>" class="btn btn-primary" target="_blank">
+                            <i class="bi bi-download me-2"></i>Ödev Dosyasını İndir
+                        </a>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="card note-list-card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Ödev Teslim Alanı</h5>
+                </div>
+                <div class="card-body p-4">
+                    <% if (submission) { %>
+                        <div class="alert alert-success" role="alert">
+                            <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> Teslim Edildi!</h4>
+                            <p>Bu ödevi zaten teslim ettiniz.</p>
+                            <hr>
+                            <% if (submission.filePath) { %>
+                                <p class="mb-0">Yüklediğiniz dosya: <a href="<%= submission.filePath %>" target="_blank">Teslimi Görüntüle</a></p>
+                            <% } else if (submission.textSubmission) { %>
+                                <p class="mb-0">Yüklediğiniz metin: <pre><%= submission.textSubmission %></pre></p>
+                            <% } %>
+                            </div>
+                    <% } else { %>
+                        <p class="text-muted">Lütfen ödevinizi metin olarak veya dosya (PDF, ZIP, Resim) yükleyerek teslim edin.</p>
+                        
+                        <form action="/odev-teslim" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="assignmentId" value="<%= assignment.id %>">
+                            
+                            <div class="mb-3">
+                                <label for="textSubmission" class="form-label">Metin Olarak Teslim Et (Opsiyonel)</label>
+                                <textarea class="form-control" id="textSubmission" name="textSubmission" rows="5" placeholder="Cevabınızı buraya yazabilirsiniz..."></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="submissionFile" class="form-label">Veya Dosya Yükle (Opsiyonel)</label>
+                                <input class="form-control" type="file" id="submissionFile" name="submissionFile">
+                                <div class="form-text">İzin verilen dosya türleri: PDF, ZIP, DOC, DOCX, TXT, JPG, PNG. (Maks 20MB)</div>
+                            </div>
+
+                            <button type_="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-send-check-fill me-2"></i>Ödevi Teslim Et
+                            </button>
+                        </form>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,55 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold text-dark mb-0"><%= title %></h1>
+                </div>
+
+            <%- include('../partials/messages') %>
+
+            <div class="card note-list-card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">Tüm Ödevler</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <% if (assignments && assignments.length > 0) { %>
+                        <% assignments.forEach(assignment => { %>
+                            <a href="/odevler/<%= assignment.id %>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h6 class="mb-1 fw-bold <%= assignment.isSubmitted ? 'text-muted' : 'text-primary' %>">
+                                        <%= assignment.title %>
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-fill"></i> Hoca: <%= assignment.Teacher.username %> | 
+                                        <i class="bi bi-calendar-event"></i> Son Teslim: 
+                                        <%= assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString('tr-TR', {day: '2-digit', month: 'long', year: 'numeric'}) : 'Belirtilmemiş' %>
+                                    </small>
+                                </div>
+                                
+                                <% if (assignment.isSubmitted) { %>
+                                    <span class="badge bg-success rounded-pill px-3 py-2">
+                                        Teslim Edildi <i class="bi bi-check-circle-fill ms-1"></i>
+                                    </span>
+                                <% } else { %>
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                        Teslim Bekleniyor <i class="bi bi-exclamation-triangle-fill ms-1"></i>
+                                    </span>
+                                <% } %>
+                            </a>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="list-group-item text-muted p-3">
+                            Henüz yayınlanmış bir ödev bulunmuyor.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

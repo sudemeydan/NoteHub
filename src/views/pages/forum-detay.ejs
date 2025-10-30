@@ -1,0 +1,57 @@
+<%- include('../partials/header') %>
+<div class="container mt-4">
+    <a href="/forum" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> Foruma Dön</a>
+    <%- include('../partials/messages') %>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h2 class="mb-0"><%= post.title %></h2>
+            <small class="text-muted">
+                Yazan: <strong><%= post.User.username %></strong> | <%= new Date(post.createdAt).toLocaleString('tr-TR') %>
+            </small>
+        </div>
+        <div class="card-body">
+            <p><%= post.content %></p>
+            <% if (post.imageUrl) { %>
+                <img src="<%= post.imageUrl %>" alt="Konu Resmi" class="img-fluid rounded mb-3" style="max-height: 400px;">
+            <% } %>
+        </div>
+    </div>
+
+    <h3 class="mb-3">Yanıtlar (<%= post.Replies.length %>)</h3>
+    <% if (post.Replies.length > 0) { %>
+        <% post.Replies.forEach(reply => { %>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <p class="mb-2"><%= reply.content %></p>
+                    <% if (reply.imageUrl) { %>
+                        <img src="<%= reply.imageUrl %>" alt="Yanıt Resmi" class="img-fluid rounded mb-2" style="max-height: 200px;">
+                    <% } %>
+                    <hr>
+                    <small class="text-muted">
+                        Yazan: <strong><%= reply.User.username %></strong> | <%= new Date(reply.createdAt).toLocaleString('tr-TR') %>
+                    </small>
+                </div>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <p class="text-muted">Henüz hiç yanıt yazılmamış.</p>
+    <% } %>
+
+    <div class="card shadow-sm mt-5">
+        <div class="card-body">
+            <h5 class="card-title">Bir Yanıt Yaz</h5>
+            <form action="/forum/<%= post.id %>/reply" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <textarea class="form-control" id="content" name="content" rows="3" required placeholder="Yanıtınızı buraya yazın..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="image" class="form-label">Fotoğraf Ekle (Opsiyonel)</label>
+                    <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary">Yanıtla</button>
+            </form>
+        </div>
+    </div>
+</div>
+<%- include('../partials/footer') %>

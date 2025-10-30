@@ -3,6 +3,14 @@ const path = require('path');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const flash = require('connect-flash');
+const assignmentRoutes = require('./src/routes/assignmentRoutes'); // <-- YENİ
+const { ensureUserLoggedIn } = require('./src/middlewares/authMiddleware'); // Bu zaten var
+const forumRoutes = require('./src/routes/forumRoutes'); // YENİ EKLENDİ
+const noteRoutes = require('./src/routes/noteRoutes');
+const userAuthRoutes = require('./src/routes/userAuthRoutes');
+
+
+
 
 // Import database and models
 const db = require('./src/models');
@@ -53,16 +61,23 @@ app.use((req, res, next) => {
 const viewRoutes = require('./src/routes/viewRoutes.js');           // Routes for public pages (home, course, note)
 const authRoutes = require('./src/routes/authRoutes');             // Routes for ADMIN authentication (login, logout, dashboard)
 const courseRoutes = require('./src/routes/courseRoutes');         // Routes for ADMIN course management (create, delete)
-const noteRoutes = require('./src/routes/noteRoutes');             // Routes for ADMIN note management (create, delete, edit, update)
-const userAuthRoutes = require('./src/routes/userAuthRoutes');     // **NEW**: Routes for USER authentication (signup, login, logout)
 
 // --- REGISTERING ROUTES ---
 app.use('/', viewRoutes);                 // Handle '/', '/dersler/:id', '/notlar/:id'
 app.use('/', userAuthRoutes);             // **NEW**: Handle '/kayit', '/giris', '/cikis' (No '/admin' prefix!)
 app.use('/admin', authRoutes);            // Handle '/admin/', '/admin/login', '/admin/logout', '/admin/dashboard'
 app.use('/admin', courseRoutes);          // Handle '/admin/courses/create', '/admin/courses/:id', '/admin/courses/delete'
-app.use('/admin', noteRoutes);            // Handle '/admin/notes/create', '/admin/notes/delete', '/admin/notes/edit/:id', '/admin/notes/update'
-// ------------------------------------------
+app.use('/admin', noteRoutes);
+app.use('/admin', assignmentRoutes); // <-- YENİ            // Handle '/admin/notes/create', '/admin/notes/delete', '/admin/notes/edit/:id', '/admin/notes/update'
+
+
+// ... (diğer app.use satırları) ...
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Bu satır zaten vardı, harika!
+// Forum resimleri için 'public/uploads' klasörünü de statik yapalım
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+// ...
+app.use('/forum', ensureUserLoggedIn, forumRoutes);
 
 // Function to connect to DB and start the server
 async function startServer() {
