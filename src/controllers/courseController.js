@@ -21,12 +21,10 @@ exports.createCourse = async (req, res) => {
     }
 };
 
-// --- YENİ EKLENEN FONKSİYON ---
 // GET /admin/courses/:id - Tek bir dersin detay sayfasını gösterir
 exports.getCourseDetailPage = async (req, res) => {
     try {
         const courseId = req.params.id;
-        // İlgili dersi, ilişkili notlarıyla birlikte veritabanından bul
         const course = await db.Course.findByPk(courseId, {
             include: [{
                 model: db.Note,
@@ -34,13 +32,11 @@ exports.getCourseDetailPage = async (req, res) => {
             }] 
         });
 
-        // Eğer ders bulunamazsa, kullanıcıyı panele yönlendir
         if (!course) {
             req.flash('error_msg', 'Ders bulunamadı.');
             return res.redirect('/admin/dashboard');
         }
 
-        // course-detail.ejs dosyasını render et ve 'course' verisini gönder
         res.render('admin/course-detail', {
             course: course
         });
@@ -50,12 +46,9 @@ exports.getCourseDetailPage = async (req, res) => {
         res.redirect('/admin/dashboard');
     }
 };
-// ... dosyanın başı, createCourse ve getCourseDetailPage fonksiyonları aynı kalıyor ...
 
-// --- YENİ FONKSİYON ---
 // POST /admin/courses/delete - Bir dersi (ve notlarını) siler
 exports.deleteCourse = async (req, res) => {
-    // Formdan gelen 'courseId'yi alıyoruz
     const { courseId } = req.body; 
     try {
         const course = await db.Course.findByPk(courseId);
@@ -64,11 +57,10 @@ exports.deleteCourse = async (req, res) => {
             return res.redirect('/admin/dashboard');
         }
 
-        // Dersi veritabanından sil (ilişkili notlar da silinecek)
         await course.destroy();
 
         req.flash('success_msg', 'Ders ve ilişkili tüm notlar başarıyla silindi.');
-        res.redirect('/admin/dashboard'); // Panele geri dön
+        res.redirect('/admin/dashboard');
     } catch (error) {
         console.error(error);
         req.flash('error_msg', 'Ders silinirken bir hata oluştu.');

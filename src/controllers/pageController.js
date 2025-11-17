@@ -1,7 +1,7 @@
 const db = require('../models');
-const { Op } = require('sequelize'); // Arama için 'Op' (Operatörler)
+const { Op } = require('sequelize'); // Arama (LIKE) için Op'u import et
 
-// GET / - Ana sayfayı gösterir
+// GET / - Ana sayfayı gösterir (Son notlar ve popüler notları da çeker)
 exports.getHomePage = async (req, res) => {
     try {
         const [courses, latestNotes, popularNotes] = await Promise.all([
@@ -17,7 +17,6 @@ exports.getHomePage = async (req, res) => {
                 include: [db.Course]
             })
         ]);
-
         res.render('pages/index', {
             title: 'Ana Sayfa',
             courses: courses,
@@ -30,7 +29,7 @@ exports.getHomePage = async (req, res) => {
     }
 };
 
-// GET /dersler/:id - Tek bir dersin notlarını listeler
+// GET /dersler/:id - Tek bir dersin notlarını listeler (Giriş Gerekli)
 exports.getCoursePage = async (req, res) => {
     try {
         const course = await db.Course.findByPk(req.params.id, {
@@ -48,12 +47,13 @@ exports.getCoursePage = async (req, res) => {
             course: course
         });
     } catch (error) {
+        console.error("Course Page Error:", error);
          req.flash('error_msg', 'Sayfa yüklenirken bir hata oluştu.');
          res.redirect('/');
     }
 };
 
-// GET /notlar/:id - Tek bir notun içeriğini gösterir
+// GET /notlar/:id - Tek bir notun içeriğini gösterir (Giriş Gerekli)
 exports.getNotePage = async (req, res) => {
     try {
         const note = await db.Note.findByPk(req.params.id, {
@@ -69,19 +69,21 @@ exports.getNotePage = async (req, res) => {
             note: note
         });
     } catch (error) {
+        console.error("Note Page Error:", error);
         req.flash('error_msg', 'Sayfa yüklenirken bir hata oluştu.');
         const backURL = req.header('Referer') || '/'; 
         res.redirect(backURL);
     }
 };
 
-// GET /notlarim - Kullanıcının "Notlarım" sayfasını gösterir
+// GET /notlarim - Kullanıcının "Notlarım" sayfasını gösterir (Giriş Gerekli)
 exports.getMyNotesPage = async (req, res) => {
     try {
         res.render('pages/my-notes', {
             title: 'Notlarım',
         });
     } catch (error) {
+        console.error("My Notes Page Error:", error);
         req.flash('error_msg', 'Sayfa yüklenirken bir hata oluştu.');
         res.redirect('/');
     }
@@ -109,6 +111,7 @@ exports.getAssignmentsListPage = async (req, res) => {
             assignments: assignmentsWithStatus
         });
     } catch (error) {
+        console.error("Get Assignments List Error:", error);
         req.flash('error_msg', 'Ödevler yüklenirken bir hata oluştu.');
         res.redirect('/');
     }
@@ -135,6 +138,7 @@ exports.getSingleAssignmentPage = async (req, res) => {
             submission: existingSubmission
         });
     } catch (error) {
+        console.error("Get Single Assignment Error:", error);
         req.flash('error_msg', 'Ödev detayı yüklenirken bir hata oluştu.');
         res.redirect('/odevlerim');
     }
@@ -186,23 +190,16 @@ exports.search = async (req, res) => {
         return res.json([]);
     }
     try {
-        // Not Başlıklarında Ara
         const notes = await db.Note.findAll({
-            where: {
-                title: { [Op.like]: `%${searchTerm}%` }
-            },
+            where: { title: { [Op.like]: `%${searchTerm}%` } },
             limit: 5,
             attributes: ['id', 'title']
         });
-        // Ders Başlıklarında Ara
         const courses = await db.Course.findAll({
-            where: {
-                title: { [Op.like]: `%${searchTerm}%` }
-            },
+            where: { title: { [Op.like]: `%${searchTerm}%` } },
             limit: 3,
             attributes: ['id', 'title']
         });
-        // Sonuçları formatla
         const noteResults = notes.map(note => ({
             title: note.title,
             url: `/notlar/${note.id}`,
@@ -214,7 +211,7 @@ exports.search = async (req, res) => {
             type: 'Ders'
         }));
         const results = [...noteResults, ...courseResults];
-        res.json(results); // JSON olarak döndür
+        res.json(results);
     } catch (error) {
         console.error("Search Error:", error);
         res.status(500).json({ error: 'Arama sırasında bir hata oluştu.' });

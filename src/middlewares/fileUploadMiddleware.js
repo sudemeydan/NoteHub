@@ -13,17 +13,16 @@ const assignmentStorage = multer.diskStorage({
 });
 const assignmentFileFilter = (req, file, cb) => {
     const allowedTypes = /pdf|zip|msword|vnd.openxmlformats-officedocument.wordprocessingml.document|jpeg|jpg|png|txt/;
-    if (allowedTypes.test(file.mimetype)) {
+    if (allowedTypes.test(file.mimetype) || allowedTypes.test(path.extname(file.originalname).toLowerCase())) {
         return cb(null, true);
     }
-    cb('Hata: İzin verilmeyen dosya türü!');
+    cb('Hata: İzin verilmeyen dosya türü (PDF, ZIP, DOC, TXT, Resim)!');
 };
 exports.uploadAssignmentFile = multer({
     storage: assignmentStorage,
     limits: { fileSize: 1024 * 1024 * 20 },
     fileFilter: assignmentFileFilter
 }).single('assignmentFile');
-
 
 // --- 2. TESLİM DOSYALARI (Öğrenci) ---
 const submissionStorage = multer.diskStorage({
@@ -42,7 +41,6 @@ exports.uploadSubmissionFile = multer({
     limits: { fileSize: 1024 * 1024 * 20 },
     fileFilter: assignmentFileFilter
 }).single('submissionFile');
-
 
 // --- 3. NOT RESİMLERİ (TinyMCE) ---
 const noteImageStorage = multer.diskStorage({
@@ -65,13 +63,12 @@ exports.uploadTinyMCEImage = multer({
     storage: noteImageStorage,
     limits: { fileSize: 1024 * 1024 * 5 }, // 5MB
     fileFilter: noteImageFileFilter
-}).single('file'); // TinyMCE 'file' adıyla gönderir
-
+}).single('file'); 
 
 // --- 4. FORUM RESİMLERİ ---
 const forumImageStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/forum_images/'); // Yeni klasöre kaydet
+        cb(null, 'uploads/forum_images/');
     },
     filename: (req, file, cb) => {
         const uniqueName = Date.now() + '-' + file.originalname;
@@ -80,6 +77,6 @@ const forumImageStorage = multer.diskStorage({
 });
 exports.uploadForumImage = multer({
     storage: forumImageStorage,
-    fileFilter: noteImageFileFilter, // Sadece resim filtresini kullan
+    fileFilter: noteImageFileFilter, // Sadece resim
     limits: { fileSize: 1024 * 1024 * 5 } // 5MB
 }).single('image'); // Forum formu 'image' adıyla gönderiyor

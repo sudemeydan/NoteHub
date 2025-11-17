@@ -1,0 +1,106 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            
+            <div class="page-title mb-4">
+                <h1 class="display-5 fw-bold text-dark"><%= title %></h1>
+                <p class="lead text-muted">Hocanın takvimini inceleyin. Meşgul saatler (kırmızı) ve onaylanmış randevular (gri) dışında kalan boş bir zaman dilimine tıklayarak randevu talebi oluşturabilirsiniz.</p>
+            </div>
+
+            <%- include('../partials/messages') %>
+
+            <div class.card shadow-sm">
+                <div class.card-body p-4">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Randevu Talebi Oluştur</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/randevu-talep" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="teacherId" value="<%= teacherId %>">
+                    <input type="hidden" name="startTime" id="modalStartTime">
+                    <input type="hidden" name="endTime" id="modalEndTime">
+
+                    <p>Seçtiğiniz tarih ve saat:</p>
+                    <h5 id="modalTimeInfo" class="text-primary"></h5>
+
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <label for="studentNotes" class="form-label">Randevu Konusu / Mesajınız</label>
+                        <textarea class="form-control" id="studentNotes" name="studentNotes" rows="4" placeholder="Hocanızla ne hakkında görüşmek istediğinizi kısaca belirtin..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Randevu Talebi Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var appointmentModal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+        var modalStartTime = document.getElementById('modalStartTime');
+        var modalEndTime = document.getElementById('modalEndTime');
+        var modalTimeInfo = document.getElementById('modalTimeInfo');
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            // --- Genel Ayarlar ---
+            locale: 'tr', // Türkçe
+            initialView: 'timeGridWeek', // Haftalık zaman çizelgesi
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            slotMinTime: '08:00:00', // Takvim sabah 8'de başlasın
+            slotMaxTime: '20:00:00', // Akşam 8'de bitsin
+            allDaySlot: false, // "Tüm gün" alanını gizle
+            
+            // --- Veri Çekme ---
+            events: '/api/randevular?teacherId=<%= teacherId %>', // Dolu saatleri bu API'den çek
+            
+            // --- Etkileşim (Boşluğa Tıklama) ---
+            selectable: true, // Boş alanları seçilebilir yap
+            select: function(info) {
+                // info objesi tıklanan boşluğun başlangıç (info.start) ve bitiş (info.end) zamanını verir
+
+                // Formu doldur
+                modalStartTime.value = info.start.toISOString();
+                modalEndTime.value = info.end.toISOString();
+                
+                // Kullanıcıya tarih/saati göster (TR formatında)
+                var timeOptions = { hour: '2-digit', minute: '2-digit' };
+                var dateOptions = { day: 'numeric', month: 'long', weekday: 'long' };
+                modalTimeInfo.innerText = info.start.toLocaleDateString('tr-TR', dateOptions) + ' | ' + 
+                                          info.start.toLocaleTimeString('tr-TR', timeOptions) + ' - ' + 
+                                          info.end.toLocaleTimeString('tr-TR', timeOptions);
+
+                // Pop-up'ı (Modal) aç
+                appointmentModal.show();
+            }
+        });
+
+        calendar.render();
+    });
+</script>
+
+<%- include('../partials/footer') %>
