@@ -23,7 +23,8 @@ exports.getNewPostPage = (req, res) => {
 // POST /forum/yeni - Yeni konuyu veritabanına kaydeder
 exports.createNewPost = async (req, res) => {
     const { title, content } = req.body;
-    const imageUrl = req.file ? ` /uploads/forum/${req.file.filename} `: null;
+    // YENİ KLASÖR YOLU
+    const imageUrl = req.file ? `/uploads/forum_images/${req.file.filename}` : null;
 
     try {
         await db.Post.create({
@@ -68,7 +69,8 @@ exports.getPostDetailPage = async (req, res) => {
 exports.createNewReply = async (req, res) => {
     const { content } = req.body;
     const postId = req.params.id;
-    const imageUrl = req.file ? `/uploads/forum/${req.file.filename} `: null;
+    // YENİ KLASÖR YOLU
+    const imageUrl = req.file ? `/uploads/forum_images/${req.file.filename}` : null;
 
     try {
         await db.Reply.create({
@@ -82,5 +84,5 @@ exports.createNewReply = async (req, res) => {
     } catch (error) {
         req.flash('error_msg', 'Yanıt eklenemedi.');
         res.redirect(`/forum/${postId}`);
-    }
+    }
 };

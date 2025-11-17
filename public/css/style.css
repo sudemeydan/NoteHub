@@ -1,27 +1,26 @@
 /* 1. Google Font ve Temel Ayarlar */
 :root {
-    --primary-color: #0d6efd; /* Bootstrap Mavisi */
-    --secondary-color: #6c757d; /* Gri tonları */
+    --primary-color: #0d6efd;
+    --primary-color-rgb: 13, 110, 253;
+    --secondary-color: #6c757d;
     --background-light: #f8f9fa;
-    --background-dark: #212529; /* Navbar için */
+    --background-dark: #212529;
     --text-dark: #343a40;
     --text-light: #ffffff;
+    --text-muted: #6c757d;
 }
-
 body {
     font-family: 'Poppins', sans-serif;
     background-color: var(--background-light) !important;
     color: var(--text-dark);
 }
-
 .container-fluid {
     padding-left: 0;
     padding-right: 0;
     position: relative;
 }
-
 .container {
-    max-width: 1200px; /* Ana içerik genişliği */
+    max-width: 1200px;
 }
 
 /* 2. Navbar */
@@ -60,9 +59,9 @@ body {
 /* 3. Hero Section (Ana Slider) */
 .hero-section {
     position: relative;
-    height: 450px; /* Yüksekliğini belirle */
+    height: 450px;
     overflow: hidden;
-    background-color: #343a40; /* Varsayılan arka plan */
+    background-color: #343a40;
     color: var(--text-light);
     display: flex;
     align-items: center;
@@ -77,7 +76,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.4; /* Resim üzerine koyuluk */
+    opacity: 0.4;
 }
 .hero-content {
     position: relative;
@@ -97,7 +96,7 @@ body {
 .hero-content .btn {
     font-size: 1.1rem;
     padding: 0.75rem 2rem;
-    border-radius: 50px; /* Yuvarlak buton */
+    border-radius: 50px;
 }
 
 /* 4. Başlık Stilleri */
@@ -121,13 +120,13 @@ body {
 }
 
 /* 5. Swiper.js Slider Stilleri */
-.swiper { /* Swiper'ın ana kapsayıcısı */
+.swiper {
     width: 100%;
     padding-top: 10px;
-    padding-bottom: 40px; /* Oklar ve pagination için boşluk */
+    padding-bottom: 40px;
 }
 .swiper-slide {
-    width: 320px; /* Kart genişliği */
+    width: 320px;
 }
 .swiper-pagination-bullet-active {
     background: var(--primary-color) !important;
@@ -183,6 +182,52 @@ body {
     color: var(--secondary-color);
     margin-bottom: 0;
 }
+/* Slider'daki note-card-small'ın tam kart görünümü için */
+.swiper-slide .note-card-small {
+    flex-direction: column;
+    align-items: flex-start !important;
+    padding: 0 !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+}
+.swiper-slide .note-card-small .card-img-container {
+    width: 100%;
+    height: 180px;
+    position: relative;
+}
+.swiper-slide .note-card-small .card-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.swiper-slide .note-card-small .card-category {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: rgba(var(--primary-color-rgb), 0.9);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.swiper-slide .note-card-small .card-body {
+    padding: 1.5rem;
+    width: 100%;
+}
+.swiper-slide .note-card-small .card-title {
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+.swiper-slide .note-card-small .card-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
 
 /* 7. Sidebar Stilleri */
 .sidebar {
@@ -229,7 +274,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
-    justify-content: center; /* Ortala */
+    justify-content: flex-start;
 }
 .course-icon-item {
     text-decoration: none;
@@ -240,9 +285,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 120px; /* Sabit genişlik */
+    width: 120px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 .course-icon-item:hover {
     transform: translateY(-5px);
@@ -309,7 +354,7 @@ code[class*="language-"] {
     color: #333 !important;
 }
 
-/* Ders Listesi Sayfası */
+/* 10. Ders Listesi Sayfası */
 .list-group-item.list-group-item-action {
     font-weight: 500;
     color: var(--text-dark);
@@ -323,12 +368,9 @@ code[class*="language-"] {
     color: var(--text-light) !important;
 }
 
-
-
 /* =================================== */
-/* 10. KULLANICI GİRİŞ/KAYIT SAYFALARI */
+/* 11. KULLANICI GİRİŞ/KAYIT SAYFALARI  */
 /* =================================== */
-
 .auth-wrapper {
     display: flex;
     align-items: center;
@@ -343,7 +385,6 @@ code[class*="language-"] {
     background-position: center;
     background-position: fixed;
 }
-
 .auth-card {
     max-width: 450px;
     width: 100%;
@@ -354,8 +395,51 @@ code[class*="language-"] {
     border-radius: 1rem;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 }
-
-/* Kayan etiketli formların içini de yarı saydam yapar */
 .form-floating > .form-control {
     background-color: transparent !important;
+}
+
+/* =================================== */
+/* 12. CANLI ARAMA SONUÇLARI (YENİ)    */
+/* =================================== */
+.sidebar-widget {
+    position: relative; /* Sonuçları konumlandırmak için */
+}
+.search-results-list {
+    position: absolute;
+    top: 100%; /* Formun hemen altında başla */
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none; /* Varsayılan olarak gizli */
+}
+.search-result-item {
+    display: block;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--text-dark);
+    border-bottom: 1px solid #f0f0f0;
+}
+.search-result-item:last-child {
+    border-bottom: none;
+}
+.search-result-item:hover {
+    background-color: #f8f9fa;
+}
+.search-result-item .result-title {
+    font-weight: 600;
+    margin-bottom: 0;
+}
+.search-result-item .result-type {
+    font-size: 0.8rem;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
 }

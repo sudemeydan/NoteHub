@@ -3,96 +3,94 @@ const path = require('path');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const flash = require('connect-flash');
-const assignmentRoutes = require('./src/routes/assignmentRoutes'); // <-- YENİ
-const { ensureUserLoggedIn } = require('./src/middlewares/authMiddleware'); // Bu zaten var
-const forumRoutes = require('./src/routes/forumRoutes'); // YENİ EKLENDİ
-const noteRoutes = require('./src/routes/noteRoutes');
+const { ensureUserLoggedIn } = require('./src/middlewares/authMiddleware'); 
+
+// Rota Tanımlamaları
+const viewRoutes = require('./src/routes/viewRoutes');
 const userAuthRoutes = require('./src/routes/userAuthRoutes');
-
-
-
+const authRoutes = require('./src/routes/authRoutes'); 
+const courseRoutes = require('./src/routes/courseRoutes');
+const noteRoutes = require('./src/routes/noteRoutes');
+const assignmentRoutes = require('./src/routes/assignmentRoutes');
+const forumRoutes = require('./src/routes/forumRoutes');
+const appointmentRoutes = require('./src/routes/appointmentRoutes'); // Randevu rotasını ekledik
 
 // Import database and models
-const db = require('./src/models');
+const db = require('./src/models'); // Artık güncel index.js'i okuyacak
 
 dotenv.config();
 const app = express();
-// --- YENİ EKLENEN KOD ---
-// Geliştirme ortamında EJS view cache'ini kapat
+
 if (process.env.NODE_ENV !== 'production') {
   app.disable('view cache');
-  console.log("!!! Express view cache KAPATILDI !!!"); // Terminalde görmek için
+  console.log("!!! Express view cache KAPATILDI !!!");
 }
-// --- YENİ KOD SONU ---
+
 const PORT = process.env.PORT || 3000;
 
-// Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
-// Middleware for static files and form data parsing
+// Middleware
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Make uploads folder accessible
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// Session and Flash Middleware configuration
+// Session ve Flash
 app.use(session({
-    secret: process.env.SESSION_SECRET, // Use a strong secret from .env
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24 // Cookie valid for 1 day
+        // maxAge: ... (kaldırıldı, tarayıcı kapanana kadar sürer)
     }
 }));
-app.use(flash()); // Enable flash messages
+app.use(flash()); 
 
-// Global variables middleware (accessible in all views)
-// UPDATED: Now checks for both admin and regular user sessions
+// Global Değişkenler
 app.use((req, res, next) => {
-    res.locals.isAdminLoggedIn = req.session.isLoggedIn || false; // Check admin login status
-    res.locals.isUserLoggedIn = req.session.isUserLoggedIn || false; // Check regular user login status
-    res.locals.currentUser = req.session.user || null; // User info (id, username, role) from session
-    res.locals.success_msg = req.flash('success_msg'); // Success flash messages
-    res.locals.error_msg = req.flash('error_msg');   // Error flash messages
+    res.locals.isAdminLoggedIn = req.session.isLoggedIn || false; 
+    res.locals.isUserLoggedIn = req.session.isUserLoggedIn || false; 
+    res.locals.currentUser = req.session.user || null; 
+    res.locals.success_msg = req.flash('success_msg'); 
+    res.locals.error_msg = req.flash('error_msg');   
     next();
 });
 
-// --- ROUTE DEFINITIONS ---
-const viewRoutes = require('./src/routes/viewRoutes.js');           // Routes for public pages (home, course, note)
-const authRoutes = require('./src/routes/authRoutes');             // Routes for ADMIN authentication (login, logout, dashboard)
-const courseRoutes = require('./src/routes/courseRoutes');         // Routes for ADMIN course management (create, delete)
-
-// --- REGISTERING ROUTES ---
-app.use('/', viewRoutes);                 // Handle '/', '/dersler/:id', '/notlar/:id'
-app.use('/', userAuthRoutes);             // **NEW**: Handle '/kayit', '/giris', '/cikis' (No '/admin' prefix!)
-app.use('/admin', authRoutes);            // Handle '/admin/', '/admin/login', '/admin/logout', '/admin/dashboard'
-app.use('/admin', courseRoutes);          // Handle '/admin/courses/create', '/admin/courses/:id', '/admin/courses/delete'
+// --- ROTALAR ---
+app.use('/', viewRoutes);                 
+app.use('/', userAuthRoutes);             
+app.use('/admin', authRoutes);            
+app.use('/admin', courseRoutes);          
 app.use('/admin', noteRoutes);
-app.use('/admin', assignmentRoutes); // <-- YENİ            // Handle '/admin/notes/create', '/admin/notes/delete', '/admin/notes/edit/:id', '/admin/notes/update'
-
-
-// ... (diğer app.use satırları) ...
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // Bu satır zaten vardı, harika!
-// Forum resimleri için 'public/uploads' klasörünü de statik yapalım
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
-// ...
+app.use('/admin', assignmentRoutes);
+app.use('/admin', appointmentRoutes); // Randevu rotasını ekledik
 app.use('/forum', ensureUserLoggedIn, forumRoutes);
 
-// Function to connect to DB and start the server
+// Sunucuyu Başlatma
 async function startServer() {
     try {
         await db.sequelize.authenticate();
-        console.log('Veritabanı bağlantısı başarıyla kuruldu.'); // Database connection successful
+        console.log('Veritabanı bağlantısı başarıyla kuruldu.'); 
 
-        await db.sequelize.sync({ force: false }); // Sync models with the database
-        console.log('Tablolar başarıyla senkronize edildi.'); // Tables synced
+        // -----------------------------------------------------------------
+        // ADIM 3: Veritabanını Yeniden Oluştur (force: true)
+        // -----------------------------------------------------------------
+        // Bu komut, veritabanı tablolarınızı (içindeki tüm verilerle birlikte!)
+        // SİLECEK ve 'index.js' dosyanızdaki TÜM modellere (Post, Reply, Assignment, Appointment)
+        // %100 uyan yeni, doğru sütunlu tabloları oluşturacaktır.
+        
+        await db.sequelize.sync({ force: false }); // DİKKAT: force: true
+        
+        console.log('Tablolar başarıyla senkronize edildi (force: true).'); 
+        // -----------------------------------------------------------------
 
         app.listen(PORT, () => {
-            console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`); // Server is running
+            console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`); 
         });
     } catch (error) {
-        console.error('Veritabanına bağlanılamadı:', error); // Database connection failed
+        console.error('Veritabanına bağlanılamadı:', error); 
     }
 }
 

@@ -1,87 +1,68 @@
 const { Sequelize } = require('sequelize');
 const sequelize = require('../config/database');
 
-// Tüm modelleri import et
+// --- TÜM MODELLERİ IMPORT ET ---
 const Course = require('./Course');
 const Note = require('./Note');
 const User = require('./User');
-const Assignment = require('./Assignment');   // <-- YENİ
-const Submission = require('./Submission'); // <-- YENİ
 const Post = require('./Post');
 const Reply = require('./Reply');
+const Assignment = require('./Assignment');
+const Submission = require('./Submission');
+const Appointment = require('./Appointment'); // <-- EKSİK OLAN BUYDU
 
+// --- TÜM İLİŞKİLERİ TANIMLA ---
 
-// --- Model İlişkileri ---
+// 1. Ders ve Not
+Course.hasMany(Note, { foreignKey: 'courseId', onDelete: 'CASCADE' });
+Note.belongsTo(Course, { foreignKey: 'courseId' });
 
-// 1. Ders ve Not İlişkisi (Zaten vardı)
-Course.hasMany(Note, {
-    foreignKey: 'courseId',
-    onDelete: 'CASCADE' // Eğer bir ders silinirse, o derse ait tüm notlar da silinsin
-});
-Note.belongsTo(Course, {
-    foreignKey: 'courseId'
-});
-
-
-// --- YENİ İLİŞKİLER ---
-
-// 2. Ödev ve Teslim İlişkisi
-// Bir Ödev'in (Assignment) birden çok Teslim'i (Submission) olabilir
-Assignment.hasMany(Submission, {
-    foreignKey: 'assignmentId',
-    onDelete: 'CASCADE' // Ödev silinirse, teslimler de silinsin
-});
-Submission.belongsTo(Assignment, {
-    foreignKey: 'assignmentId'
-});
-
-// 3. Kullanıcı ve Teslim İlişkisi
-// Bir Kullanıcı (Öğrenci) birden çok Teslim (Submission) yapabilir
-User.hasMany(Submission, {
-    foreignKey: 'userId',
-    onDelete: 'SET NULL' // Kullanıcı hesabını silerse, teslimi kalsın ama sahibi "null" olsun
-});
-Submission.belongsTo(User, {
-    foreignKey: 'userId'
-});
-
-// 4. (İsteğe bağlı) Hoca ve Ödev İlişkisi
-// Bir Kullanıcı (Hoca/Admin) birden çok Ödev (Assignment) oluşturabilir
-// 'admin' rolündeki kullanıcıların ödevlerini ayırmak için bu ilişki eklenebilir.
-User.hasMany(Assignment, { 
-    foreignKey: 'teacherId' // assignments tablosuna 'teacherId' sütunu ekler
-});
-Assignment.belongsTo(User, { 
-    foreignKey: 'teacherId',
-    as: 'Teacher' // İlişkiye isim verme (opsiyonel)
-});
-// Bir Kullanıcı birden çok Post (Konu) açabilir
+// 2. Forum (Arkadaşınızın)
 User.hasMany(Post, { foreignKey: 'userId' });
 Post.belongsTo(User, { foreignKey: 'userId' });
-
-// Bir Kullanıcı birden çok Reply (Yanıt) yazabilir
 User.hasMany(Reply, { foreignKey: 'userId' });
 Reply.belongsTo(User, { foreignKey: 'userId' });
-
-// Bir Post (Konu) birden çok Reply (Yanıt) alabilir
-Post.hasMany(Reply, { 
-    foreignKey: 'postId',
-    onDelete: 'CASCADE' // Ana konu silinirse tüm yanıtlar da silinir
-});
+Post.hasMany(Reply, { foreignKey: 'postId', onDelete: 'CASCADE' });
 Reply.belongsTo(Post, { foreignKey: 'postId' });
 
+// 3. Ödev ve Teslim
+Assignment.hasMany(Submission, { foreignKey: 'assignmentId', onDelete: 'CASCADE' });
+Submission.belongsTo(Assignment, { foreignKey: 'assignmentId' });
+User.hasMany(Submission, { foreignKey: 'userId', onDelete: 'SET NULL' });
+Submission.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Assignment, { foreignKey: 'teacherId' });
+Assignment.belongsTo(User, { foreignKey: 'teacherId', as: 'Teacher' });
 
-// --- Veritabanı Objesini Dışa Aktar ---
+// --- 4. RANDEVU İLİŞKİLERİ (EKSİK OLAN KISIM) ---
+User.hasMany(Appointment, {
+    foreignKey: 'teacherId',
+    as: 'TeacherAppointments'
+});
+Appointment.belongsTo(User, {
+    foreignKey: 'teacherId',
+    as: 'Teacher'
+});
+User.hasMany(Appointment, {
+    foreignKey: 'studentId',
+    as: 'StudentAppointments'
+});
+Appointment.belongsTo(User, {
+    foreignKey: 'studentId',
+    as: 'Student'
+});
+// --- İLİŞKİLER SONU ---
+
 const db = {
     sequelize,
     Sequelize,
     User,
-    Post,
-    Reply,
     Course,
     Note,
-    Assignment, // <-- YENİ
-    Submission  // <-- YENİ
+    Post,
+    Reply,
+    Assignment,
+    Submission,
+    Appointment // <-- EKSİK OLAN BUYDU
 };
 
 module.exports = db;

@@ -33,7 +33,6 @@ exports.isAdmin = (req, res, next) => {
 };
 
 // Sadece Misafir İzin Middleware'i (Giriş yapmamışları kontrol eder)
-// Bu fonksiyonu userAuthRoutes.js'den buraya taşıdık, daha merkezi oldu.
 exports.guestMiddleware = (req, res, next) => {
     // Hem normal kullanıcı hem de admin oturumu kontrol edilir
     if (req.session.isUserLoggedIn || req.session.isLoggedIn) {

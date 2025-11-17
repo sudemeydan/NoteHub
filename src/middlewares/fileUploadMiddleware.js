@@ -1,67 +1,85 @@
 const multer = require('multer');
 const path = require('path');
 
-// Hocanın ödev dosyaları için (PDF, ZIP, DOCX vb.)
+// --- 1. ÖDEV DOSYALARI (Hoca) ---
 const assignmentStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/assignments/'); // Dosyaları buraya kaydet
+        cb(null, 'uploads/assignments/');
     },
     filename: (req, file, cb) => {
-        // Dosya adını benzersiz yap: timestamp-orijinal_ad
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
     }
 });
-
-// Hangi dosya türlerine izin verileceği
 const assignmentFileFilter = (req, file, cb) => {
-    // İzin verilen dosya türleri
     const allowedTypes = /pdf|zip|msword|vnd.openxmlformats-officedocument.wordprocessingml.document|jpeg|jpg|png|txt/;
-    const mimetype = allowedTypes.test(file.mimetype);
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (mimetype && extname) {
+    if (allowedTypes.test(file.mimetype)) {
         return cb(null, true);
     }
-    cb('Hata: Sadece PDF, ZIP, DOC, DOCX, TXT veya Resim dosyaları yükleyebilirsiniz!');
+    cb('Hata: İzin verilmeyen dosya türü!');
 };
-
-// Middleware'i yapılandır
 exports.uploadAssignmentFile = multer({
     storage: assignmentStorage,
-    limits: { fileSize: 1024 * 1024 * 20 }, // 20MB limit
+    limits: { fileSize: 1024 * 1024 * 20 },
     fileFilter: assignmentFileFilter
-}).single('assignmentFile'); // Formdaki input'un adı 'assignmentFile' olacak
-// ... (dosyanın üstündeki uploadAssignmentFile kodu aynı kalıyor) ...
+}).single('assignmentFile');
 
-// Öğrencinin teslim (submission) dosyaları için (PDF, ZIP, Resim vb.)
+
+// --- 2. TESLİM DOSYALARI (Öğrenci) ---
 const submissionStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/submissions/'); // Dosyaları buraya kaydet
+        cb(null, 'uploads/submissions/');
     },
     filename: (req, file, cb) => {
-        // Dosya adını benzersiz yap: ogrenciID-odevID-tarih-orijinal_ad
+        const userId = req.session && req.session.user ? req.session.user.id : 'unknown';
+        const assignmentId = req.body.assignmentId || 'unknown';
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        // Güvenlik için kullanıcı ID'sini de ekleyebiliriz (req.session.user.id)
-        cb(null, `${req.session.user.id}-${req.body.assignmentId}-${uniqueSuffix}-${file.originalname}`);
+        cb(null, `${userId}-${assignmentId}-${uniqueSuffix}-${file.originalname}`);
     }
 });
-
-// Hangi dosya türlerine izin verileceği (assignment ile aynı)
-const submissionFileFilter = (req, file, cb) => {
-    const allowedTypes = /pdf|zip|msword|vnd.openxmlformats-officedocument.wordprocessingml.document|jpeg|jpg|png|txt/;
-    const mimetype = allowedTypes.test(file.mimetype);
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (mimetype && extname) {
-        return cb(null, true);
-    }
-    cb('Hata: Sadece PDF, ZIP, DOC, DOCX, TXT veya Resim dosyaları yükleyebilirsiniz!');
-};
-
-// Yeni middleware'i export et
 exports.uploadSubmissionFile = multer({
     storage: submissionStorage,
-    limits: { fileSize: 1024 * 1024 * 20 }, // 20MB limit
-    fileFilter: submissionFileFilter
-}).single('submissionFile'); // Formdaki input'un adı 'submissionFile' olacak
+    limits: { fileSize: 1024 * 1024 * 20 },
+    fileFilter: assignmentFileFilter
+}).single('submissionFile');
+
+
+// --- 3. NOT RESİMLERİ (TinyMCE) ---
+const noteImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/note_images/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+const noteImageFileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Sadece resim dosyaları yüklenebilir!'), false);
+    }
+};
+exports.uploadTinyMCEImage = multer({
+    storage: noteImageStorage,
+    limits: { fileSize: 1024 * 1024 * 5 }, // 5MB
+    fileFilter: noteImageFileFilter
+}).single('file'); // TinyMCE 'file' adıyla gönderir
+
+
+// --- 4. FORUM RESİMLERİ ---
+const forumImageStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/forum_images/'); // Yeni klasöre kaydet
+    },
+    filename: (req, file, cb) => {
+        const uniqueName = Date.now() + '-' + file.originalname;
+        cb(null, uniqueName);
+    }
+});
+exports.uploadForumImage = multer({
+    storage: forumImageStorage,
+    fileFilter: noteImageFileFilter, // Sadece resim filtresini kullan
+    limits: { fileSize: 1024 * 1024 * 5 } // 5MB
+}).single('image'); // Forum formu 'image' adıyla gönderiyor

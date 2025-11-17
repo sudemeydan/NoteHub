@@ -1,8 +1,9 @@
 </main>
 
-    <footer class="bg-dark text-white py-4 border-top">
+    <footer class="bg-dark text-white py-4 border-top mt-auto">
         <div class="container text-center">
-            <p class="mb-0 text-muted">&copy; 2025 Proje Adı. Tüm Hakları Saklıdır.</p>
+            <p class="mb-1 text-muted">&copy; 2025 Proje Adı. Tüm Hakları Saklıdır.</p>
+            <small><a href="/admin/login" class="text-secondary text-decoration-none">Yönetici Girişi</a></small>
         </div>
     </footer>
 
@@ -10,9 +11,90 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
     <script>
         // Swiper kodu...
-        if (typeof Swiper !== 'undefined') { var swiper = new Swiper(".mySwiper", { /* ... ayarlar ... */ }); }
+        if (typeof Swiper !== 'undefined') { 
+            var swiper = new Swiper(".mySwiper", {
+                slidesPerView: "auto",
+                spaceBetween: 25,
+                loop: true,
+                autoplay: { delay: 3500, disableOnInteraction: false },
+                pagination: { el: ".swiper-pagination", clickable: true },
+                navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+                breakpoints: {
+                    640: { slidesPerView: 2, spaceBetween: 30 },
+                    992: { slidesPerView: 3, spaceBetween: 30 },
+                    1200: { slidesPerView: 4, spaceBetween: 30 }
+                }
+            });
+        }
     </script>
-</body>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+
+            if (!searchInput || !searchResults) {
+                return;
+            }
+
+            let searchTimeout;
+
+            searchInput.addEventListener('keyup', (e) => {
+                const term = e.target.value;
+                clearTimeout(searchTimeout);
+
+                if (term.length < 2) { // En az 2 harf girsin
+                    searchResults.style.display = 'none';
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                // 300ms bekledikten sonra aramayı yap
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        // Backend'e /arama API'sine istek at
+                        const response = await fetch(`/arama?term=${encodeURIComponent(term)}`);
+                        if (!response.ok) return;
+
+                        const results = await response.json();
+                        
+                        let html = '';
+                        if (results.length > 0) {
+                            results.forEach(result => {
+                                const badgeColor = result.type === 'Not' ? 'bg-primary' : 'bg-success';
+                                html += `
+                                    <a href="${result.url}" class="search-result-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="result-title">${result.title}</span>
+                                            <span class="badge ${badgeColor} result-type">${result.type}</span>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                        } else {
+                            html = '<div class="p-3 text-muted text-center">Sonuç bulunamadı.</div>';
+                        }
+
+                        searchResults.innerHTML = html;
+                        searchResults.style.display = 'block';
+
+                    } catch (err) {
+                        console.error('Arama hatası:', err);
+                        searchResults.style.display = 'none';
+                    }
+                }, 300);
+            });
+
+            // Dışarıya tıklayınca sonuçları kapat
+            document.addEventListener('click', (e) => {
+                if (searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    </body>
 </html>

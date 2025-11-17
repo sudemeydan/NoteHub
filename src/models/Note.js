@@ -12,10 +12,19 @@ const Note = sequelize.define('Note', {
         allowNull: false
     },
     content: {
-        type: DataTypes.TEXT('long'), // Çok uzun metinler için LONGTEXT
+        type: DataTypes.TEXT('long'), // Burası artık Markdown metni saklayacak
         allowNull: false
+    },
+    // --- YENİ SÜTUNLAR ---
+    imagePath: {
+        type: DataTypes.STRING, // Notun kapak/ana resmi
+        allowNull: true
+    },
+    filePath: {
+        type: DataTypes.STRING, // Notla ilgili PDF, ZIP vb. dosya
+        allowNull: true
     }
-    // course_id alanı ilişkiler kurulurken otomatik eklenecek
+    // course_id alanı ilişkilerde
 }, {
     tableName: 'notes'
 });

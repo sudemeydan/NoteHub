@@ -100,3 +100,15 @@ exports.updateNote = async (req, res) => {
         }
     }
 };
+
+// --- YENİ FONKSİYON: TinyMCE için resim yüklemeyi işler ---
+exports.uploadImage = (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'Dosya yüklenemedi. Sadece resim dosyaları kabul edilir.' });
+    }
+
+    // TinyMCE'nin beklediği JSON formatında dosyanın konumunu (location) döndür
+    const fileUrl = `/uploads/note_images/${req.file.filename}`;
+    
+    res.json({ location: fileUrl });
+};
