@@ -2,7 +2,6 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
-    // Model attributes are defined here
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -13,18 +12,30 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: true
     },
+    // --- İŞTE EKSİK OLAN KISIMLAR ---
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true
+        }
+    },
+    phoneNumber: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    // --------------------------------
     password: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    // --- YENİ EKLENEN ALAN ---
     role: {
         type: DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'user' // Varsayılan rol 'user'
+        defaultValue: 'user'
     }
 }, {
-    // Diğer model seçenekleri
     tableName: 'users'
 });
 

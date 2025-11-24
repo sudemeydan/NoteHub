@@ -1,21 +1,21 @@
 {
   "development": {
     "username": "root",
-    "password": null,
+    "password": "123456Sude",
     "database": "webproje_db",
     "host": "localhost",
     "dialect": "mysql"
   },
   "test": {
     "username": "root",
-    "password": null,
+    "password": "123456Sude",
     "database": "webproje_db_test",
     "host": "localhost",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
-    "password": null,
+    "password":"123456Sude",
     "database": "webproje_db_prod",
     "host": "localhost",
     "dialect": "mysql"

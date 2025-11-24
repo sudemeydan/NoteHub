@@ -5,10 +5,11 @@
         <div class="card-body p-4 p-md-5">
             <div class="text-center mb-4"><i class="bi bi-box-arrow-in-right text-primary" style="font-size: 3rem;"></i><h2 class="card-title h3 mt-2"><%= title %></h2></div>
             <%- include('../partials/messages') %> 
+            
             <form action="/giris" method="POST">
                 <div class="form-floating mb-3">
-                    <input type="text" class="form-control" id="username" name="username" placeholder="Kullanıcı Adı" required>
-                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" class="form-control" id="loginInput" name="loginInput" placeholder="Kullanıcı Adı veya E-posta" required>
+                    <label for="loginInput">Kullanıcı Adı veya E-posta</label>
                 </div>
                 <div class="form-floating mb-3">
                     <input type="password" class="form-control" id="password" name="password" placeholder="Şifre" required>

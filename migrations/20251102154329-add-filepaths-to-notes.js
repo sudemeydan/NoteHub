@@ -2,7 +2,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     // imagePath sütununu ekle (görsel için)
-    await queryInterface.addColumn('notes', 'imagePath', {
+   /* await queryInterface.addColumn('notes', 'imagePath', {
       type: Sequelize.STRING,
       allowNull: true,
       after: 'content'
@@ -12,7 +12,7 @@ module.exports = {
       type: Sequelize.STRING,
       allowNull: true,
       after: 'imagePath'
-    });
+    });*/
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.removeColumn('notes', 'filePath');

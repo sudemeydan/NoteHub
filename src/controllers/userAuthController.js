@@ -1,140 +1,117 @@
 const bcrypt = require('bcryptjs');
 const db = require('../models');
+const { Op } = require('sequelize'); // 'veya' sorgusu için gerekli
 
-// GET /kayit - Kayıt sayfasını gösterir
+// GET /kayit
 exports.getSignupPage = (req, res) => {
-    // Render the signup page view
-    res.render('pages/signup', { 
-        title: 'Kayıt Ol',
-        // Pass any other necessary variables for the view if needed
-    });
+    res.render('pages/signup', { title: 'Kayıt Ol' });
 };
 
-// POST /kayit - Yeni kullanıcıyı kaydeder
+// POST /kayit - YENİ: Mail ve Telefon Kaydı
 exports.postSignup = async (req, res) => {
-    const { username, password, confirmPassword } = req.body;
+    const { username, email, phoneNumber, password, confirmPassword } = req.body;
 
-    // --- Input Validation ---
-    let errors = [];
-    if (!username || !password || !confirmPassword) {
-        errors.push({ msg: 'Lütfen tüm alanları doldurun.' });
+    // Basit validasyonlar
+    if (!username || !email || !password || !confirmPassword) {
+        req.flash('error_msg', 'Lütfen zorunlu alanları doldurun.');
+        return res.redirect('/kayit');
     }
     if (password !== confirmPassword) {
-        errors.push({ msg: 'Şifreler eşleşmiyor.' });
-    }
-    if (password && password.length < 6) { // Example: Minimum password length
-        errors.push({ msg: 'Şifre en az 6 karakter olmalıdır.' });
-    }
-
-    // If there are validation errors, redirect back to signup with errors
-    if (errors.length > 0) {
-        // You might want to pass the entered username back to the form
-        // for better UX, but flash messages are simpler for now.
-        errors.forEach(err => req.flash('error_msg', err.msg));
+        req.flash('error_msg', 'Şifreler eşleşmiyor.');
         return res.redirect('/kayit');
     }
 
     try {
-        // Check if username already exists (case-insensitive check might be better depending on DB)
-        const existingUser = await db.User.findOne({ where: { username: username } });
+        // Kullanıcı adı veya Email daha önce alınmış mı?
+        const existingUser = await db.User.findOne({
+            where: {
+                [Op.or]: [
+                    { username: username },
+                    { email: email }
+                ]
+            }
+        });
+
         if (existingUser) {
-            req.flash('error_msg', 'Bu kullanıcı adı zaten alınmış.');
+            req.flash('error_msg', 'Bu kullanıcı adı veya e-posta zaten kullanılıyor.');
             return res.redirect('/kayit');
         }
 
-        // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 12); // 12 salt rounds
+        const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Create the new user in the database (role defaults to 'user' via the model)
+        // Yeni kullanıcıyı oluştur
         await db.User.create({
-            username: username,
+            username,
+            email,
+            phoneNumber,
             password: hashedPassword
-            // 'role' will automatically be 'user' due to the model's defaultValue
         });
 
-        // Flash success message and redirect to the login page
-        req.flash('success_msg', 'Başarıyla kayıt oldunuz! Şimdi giriş yapabilirsiniz.');
+        req.flash('success_msg', 'Kayıt başarılı! Giriş yapabilirsiniz.');
         res.redirect('/giris');
 
     } catch (error) {
-        console.error("Signup Error:", error); // Log the detailed error
-        req.flash('error_msg', 'Kayıt sırasında beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
+        console.error("Signup Error:", error);
+        req.flash('error_msg', 'Kayıt sırasında bir hata oluştu.');
         res.redirect('/kayit');
     }
 };
 
-// GET /giris - Giriş sayfasını gösterir
+// GET /giris
 exports.getLoginPage = (req, res) => {
-    // Render the login page view
-    res.render('pages/login', { 
-        title: 'Giriş Yap',
-        // Pass any other necessary variables for the view if needed
-    });
+    res.render('pages/login', { title: 'Giriş Yap' });
 };
 
-// POST /giris - Kullanıcı girişini doğrular
+// POST /giris - YENİ: Kullanıcı Adı VEYA Email ile Giriş
 exports.postLogin = async (req, res) => {
-    const { username, password } = req.body;
+    const { loginInput, password } = req.body; // Formdan 'loginInput' adıyla gelecek
 
-    // Basic validation
-    if (!username || !password) {
-        req.flash('error_msg', 'Lütfen kullanıcı adı ve şifre girin.');
+    if (!loginInput || !password) {
+        req.flash('error_msg', 'Lütfen bilgileri girin.');
         return res.redirect('/giris');
     }
 
     try {
-        // Find the user by username
-        const user = await db.User.findOne({ where: { username: username } });
+        // Kullanıcı adı veya Email ile ara
+        const user = await db.User.findOne({
+            where: {
+                [Op.or]: [
+                    { username: loginInput },
+                    { email: loginInput }
+                ]
+            }
+        });
 
-        // Check if user exists AND is NOT an admin (admins use /admin/login)
+        // Kullanıcı yoksa veya Admin ise (Admin girişi ayrıdır)
         if (!user || user.role === 'admin') {
-            req.flash('error_msg', 'Kullanıcı adı veya şifre hatalı.');
+            req.flash('error_msg', 'Kullanıcı bulunamadı veya şifre hatalı.');
             return res.redirect('/giris');
         }
 
-        // Compare the submitted password with the hashed password in the database
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (isMatch) {
-            // Passwords match - Create session for the regular user
-            req.session.isUserLoggedIn = true; // Use a different flag than admin's isLoggedIn
+            req.session.isUserLoggedIn = true;
             req.session.user = { 
                 id: user.id, 
                 username: user.username, 
+                email: user.email, 
                 role: user.role 
             };
             
-            // Save the session and redirect to the "My Notes" page
-            return req.session.save(err => {
-                if (err) {
-                    console.error("Session Save Error:", err);
-                    req.flash('error_msg', 'Oturum kaydedilirken bir hata oluştu.');
-                    return res.redirect('/giris');
-                }
-                // Redirect to '/notlarim' upon successful login
-                res.redirect('/notlarim'); 
-            });
+            return req.session.save(() => res.redirect('/notlarim'));
         } else {
-            // Passwords do not match
-            req.flash('error_msg', 'Kullanıcı adı veya şifre hatalı.');
+            req.flash('error_msg', 'Şifre hatalı.');
             return res.redirect('/giris');
         }
     } catch (error) {
-        console.error("Login Error:", error); // Log the detailed error
-        req.flash('error_msg', 'Giriş sırasında beklenmedik bir hata oluştu. Lütfen tekrar deneyin.');
+        console.error("Login Error:", error);
+        req.flash('error_msg', 'Giriş hatası.');
         res.redirect('/giris');
     }
 };
 
-// GET /cikis - Kullanıcı çıkışını yapar (Logs out both regular users and admins if they use this route)
+// GET /cikis
 exports.getLogout = (req, res) => {
-    // Destroy the session
-    req.session.destroy(err => {
-        if (err) {
-            console.error("Logout Error:", err);
-            // Optionally flash an error message if logout fails, but usually just redirect
-        }
-        // Redirect to the homepage after logout
-        res.redirect('/'); 
-    });
+    req.session.destroy(() => res.redirect('/'));
 };
