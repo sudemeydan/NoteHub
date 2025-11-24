@@ -1,18 +1,18 @@
-</main> <footer class="bg-dark text-white py-4 border-top mt-auto"> <div class="container text-center">
+</main> 
+
+    <footer class="bg-dark text-white py-4 border-top mt-auto">
+        <div class="container text-center">
             <p class="mb-1 text-muted">&copy; 2025 Proje Adı. Tüm Hakları Saklıdır.</p>
             <small><a href="/admin/login" class="text-secondary text-decoration-none">Yönetici Girişi</a></small>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/main.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/locales/tr.js'></script> <script>
+    
+    <script>
         if (typeof Swiper !== 'undefined') { 
             var swiper = new Swiper(".mySwiper", {
                 slidesPerView: "auto",
@@ -34,30 +34,21 @@
         document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('searchInput');
             const searchResults = document.getElementById('searchResults');
-
-            if (!searchInput || !searchResults) {
-                return;
-            }
-
+            if (!searchInput || !searchResults) return;
             let searchTimeout;
-
             searchInput.addEventListener('keyup', (e) => {
                 const term = e.target.value;
                 clearTimeout(searchTimeout);
-
-                if (term.length < 2) { 
+                if (term.length < 2) {
                     searchResults.style.display = 'none';
                     searchResults.innerHTML = '';
                     return;
                 }
-
                 searchTimeout = setTimeout(async () => {
                     try {
                         const response = await fetch(`/arama?term=${encodeURIComponent(term)}`);
                         if (!response.ok) return;
-
                         const results = await response.json();
-                        
                         let html = '';
                         if (results.length > 0) {
                             results.forEach(result => {
@@ -74,17 +65,14 @@
                         } else {
                             html = '<div class="p-3 text-muted text-center">Sonuç bulunamadı.</div>';
                         }
-
                         searchResults.innerHTML = html;
                         searchResults.style.display = 'block';
-
                     } catch (err) {
                         console.error('Arama hatası:', err);
                         searchResults.style.display = 'none';
                     }
                 }, 300);
             });
-
             document.addEventListener('click', (e) => {
                 if (searchResults && !searchInput.contains(e.target) && !searchResults.contains(e.target)) {
                     searchResults.style.display = 'none';

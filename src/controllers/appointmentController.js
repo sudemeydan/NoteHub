@@ -1,30 +1,43 @@
 const db = require('../models');
 const { Op } = require('sequelize');
 
-// GET /admin/randevular - SADECE hocanın MEŞGUL saatlerini gösterir
+// GET /admin/randevular - Randevu yönetim sayfasını gösterir
 exports.getAppointmentsPage = async (req, res) => {
     try {
-        // SADECE 'busy' (meşgul) olan ve BU HOCAYA (teacherId) ait olanları getir
+        const teacherId = req.session.user.id;
+
+        // 1. Hocanın Kendi Bloke Ettiği Saatler (Status: 'busy')
         const busySlots = await db.Appointment.findAll({
             where: {
-                teacherId: req.session.user.id,
+                teacherId: teacherId,
                 status: 'busy' 
             },
-            order: [['startTime', 'DESC']]
+            order: [['startTime', 'ASC']]
+        });
+
+        const studentAppointments = await db.Appointment.findAll({
+            where: {
+                teacherId: teacherId,
+                status: { [Op.ne]: 'busy' } 
+            },
+            include: [
+                { model: db.User, as: 'Student', attributes: ['username', 'id'] } // Öğrenci bilgisini getir
+            ],
+            order: [['startTime', 'ASC']]
         });
 
         res.render('admin/randevular', {
-            title: 'Meşgul Zaman Yönetimi',
-            appointments: busySlots // Sadece meşgul zamanları gönder
+            title: 'Randevu Yönetimi',
+            busySlots: busySlots,
+            studentAppointments: studentAppointments // Artık bu değişken view'a gidiyor
         });
     } catch (error) {
         console.error("Admin Get Appointments Error:", error);
-        req.flash('error_msg', 'Meşgul zamanlar yüklenirken bir hata oluştu.');
+        req.flash('error_msg', 'Randevular yüklenirken bir hata oluştu.');
         res.redirect('/admin/dashboard');
     }
 };
 
-// POST /admin/randevular/create - Yeni bir "MEŞGUL zaman dilimi" oluşturur
 exports.createBusySlot = async (req, res) => {
     const { date, startTime, endTime } = req.body;
     const teacherId = req.session.user.id; 
@@ -46,38 +59,66 @@ exports.createBusySlot = async (req, res) => {
         await db.Appointment.create({
             startTime: startDateTime,
             endTime: endDateTime,
-            status: 'busy', // Durumu "meşgul" olarak ayarla
+            status: 'busy',
             teacherId: teacherId,
             studentId: null,
-            studentNotes: "Hoca meşgul (Bloke edildi)" // Açıklayıcı not
+            studentNotes: "Hoca meşgul (Bloke edildi)"
         });
 
-        req.flash('success_msg', 'Meşgul zaman dilimi takvime başarıyla eklendi.');
+        req.flash('success_msg', 'Meşgul zaman dilimi eklendi.');
         res.redirect('/admin/randevular');
     } catch (error) {
         console.error("Create Slot Error:", error);
-        req.flash('error_msg', 'Zaman dilimi oluşturulurken bir hata oluştu.');
+        req.flash('error_msg', 'Hata oluştu.');
         res.redirect('/admin/randevular');
     }
 };
 
-// POST /admin/randevular/delete - Bir randevu/meşgul kaydını siler
+exports.confirmAppointment = async (req, res) => {
+    const { appointmentId } = req.body;
+    try {
+        const appointment = await db.Appointment.findByPk(appointmentId);
+        if (appointment && appointment.status === 'pending') {
+            appointment.status = 'confirmed';
+            await appointment.save();
+            req.flash('success_msg', 'Randevu onaylandı.');
+        }
+    } catch (error) {
+        console.error(error);
+        req.flash('error_msg', 'İşlem sırasında hata oluştu.');
+    }
+    res.redirect('/admin/randevular');
+};
+
+exports.rejectAppointment = async (req, res) => {
+    const { appointmentId } = req.body;
+    try {
+        const appointment = await db.Appointment.findByPk(appointmentId);
+        if (appointment && appointment.status === 'pending') {
+            appointment.status = 'rejected';
+            await appointment.save();
+            req.flash('success_msg', 'Randevu reddedildi.');
+        }
+    } catch (error) {
+        console.error(error);
+        req.flash('error_msg', 'İşlem sırasında hata oluştu.');
+    }
+    res.redirect('/admin/randevular');
+};
+
 exports.deleteAppointment = async (req, res) => {
     const { appointmentId } = req.body;
     try {
         const appointment = await db.Appointment.findByPk(appointmentId);
-
-        // Güvenlik: Sadece kendi kaydını silebilsin
         if (!appointment || appointment.teacherId !== req.session.user.id) {
-            req.flash('error_msg', 'Kayıt bulunamadı veya silme yetkiniz yok.');
+            req.flash('error_msg', 'Yetkisiz işlem.');
             return res.redirect('/admin/randevular');
         }
-
         await appointment.destroy();
-        req.flash('success_msg', 'Kayıt başarıyla silindi.');
+        req.flash('success_msg', 'Kayıt silindi.');
     } catch (error) {
-        console.error("Delete Appointment Error:", error);
-        req.flash('error_msg', 'Kayıt silinirken bir hata oluştu.');
+        console.error("Delete Error:", error);
+        req.flash('error_msg', 'Silinirken hata oluştu.');
     }
     res.redirect('/admin/randevular');
 };

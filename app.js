@@ -74,12 +74,7 @@ async function startServer() {
         await db.sequelize.authenticate();
         console.log('Veritabanı bağlantısı başarıyla kuruldu.'); 
 
-        // -----------------------------------------------------------------
-        // ADIM 3: Veritabanını Yeniden Oluştur (force: true)
-        // -----------------------------------------------------------------
-        // Bu komut, veritabanı tablolarınızı (içindeki tüm verilerle birlikte!)
-        // SİLECEK ve 'index.js' dosyanızdaki TÜM modellere (Post, Reply, Assignment, Appointment)
-        // %100 uyan yeni, doğru sütunlu tabloları oluşturacaktır.
+      
         
         await db.sequelize.sync({ force: false }); // DİKKAT: force: true
         

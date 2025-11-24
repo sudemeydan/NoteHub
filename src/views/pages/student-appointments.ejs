@@ -1,0 +1,107 @@
+<%- include('../partials/header', { title: title }) %>
+
+<div class="container mt-5">
+    <h1 class="display-5 mb-4 fw-bold">Randevularım</h1>
+    
+    <div class="d-flex justify-content-end mb-3">
+        <a href="/randevu-al" class="btn btn-primary"><i class="bi bi-calendar-plus me-2"></i>Yeni Randevu Al</a>
+    </div>
+
+    <%- include('../partials/messages') %>
+
+    <div class="card shadow-sm mb-5 border-success">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Onaylanan / Yaklaşan Randevularım</h5>
+        </div>
+        <div class="card-body p-0">
+            <% 
+                const confirmedApps = appointments.filter(app => app.status === 'confirmed');
+            %>
+            <% if (confirmedApps.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hoca</th>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Konu</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% confirmedApps.forEach(app => { %>
+                                <tr class="table-success">
+                                    <td><strong><%= app.Teacher ? app.Teacher.username : 'Bilinmiyor' %></strong></td>
+                                    <td><%= new Date(app.startTime).toLocaleDateString('tr-TR') %></td>
+                                    <td>
+                                        <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - 
+                                        <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
+                                    </td>
+                                    <td><%= app.studentNotes %></td>
+                                    <td><span class="badge bg-success">Onaylandı</span></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="p-4 text-center text-muted">
+                    Şu anda onaylanmış, bekleyen bir randevunuz yok.
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0 text-dark">Talep Geçmişi (Bekleyen / Reddedilen)</h5>
+        </div>
+        <div class="card-body p-0">
+            <% 
+                const otherApps = appointments.filter(app => app.status !== 'confirmed');
+            %>
+            <% if (otherApps.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hoca</th>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Konu</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% otherApps.forEach(app => { %>
+                                <tr>
+                                    <td><%= app.Teacher ? app.Teacher.username : 'Bilinmiyor' %></td>
+                                    <td><%= new Date(app.startTime).toLocaleDateString('tr-TR') %></td>
+                                    <td>
+                                        <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - 
+                                        <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
+                                    </td>
+                                    <td class="text-muted small"><%= app.studentNotes %></td>
+                                    <td>
+                                        <% if (app.status === 'pending') { %>
+                                            <span class="badge bg-warning text-dark">Onay Bekliyor</span>
+                                        <% } else if (app.status === 'rejected') { %>
+                                            <span class="badge bg-danger">Reddedildi</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="p-4 text-center text-muted">
+                    Bekleyen veya reddedilen bir talebiniz yok.
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

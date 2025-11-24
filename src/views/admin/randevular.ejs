@@ -6,25 +6,39 @@
     <title><%= title %></title>
     <style>
         body { font-family: sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
         .back-link { text-decoration: none; background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; font-size: 14px; }
         .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid transparent; }
         .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
         .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .content-section { margin-top: 2rem; }
-        form { background: #f1f3f5; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; }
+        .content-section { margin-top: 3rem; }
+        form { display: inline-block; } 
+        .form-add { display: block; background: #f1f3f5; padding: 1.5rem; border-radius: 5px; margin-bottom: 2rem; }
         .form-group { margin-bottom: 1rem; }
         label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="time"], textarea, select { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { padding: 0.75rem 1.5rem; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        input, select { width: 100%; padding: 0.75rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 14px; }
+        .btn-primary { background-color: #0d6efd; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; vertical-align: middle; }
         th { background-color: #f1f3f5; }
-        .status-busy { color: #dc3545; font-weight: bold; } /* Kırmızı - Meşgul */
-        .btn-sm { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+        
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; color: white; }
+        .bg-pending { background-color: #ffc107; color: #000; }
+        .bg-confirmed { background-color: #198754; }
+        .bg-rejected { background-color: #6c757d; }
+        .bg-busy { background-color: #dc3545; }
+
+        .btn-sm { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-right: 3px; }
+        .btn-approve { background-color: #198754; }
+        .btn-reject { background-color: #ffc107; color: #000; }
         .btn-delete { background-color: #dc3545; }
-        .btn-delete:hover { background-color: #bb2d3b; }
+        
+        /* Yeni Bölüm Başlıkları */
+        .section-header-confirmed { border-left: 5px solid #198754; padding-left: 10px; color: #198754; margin-bottom: 15px; }
+        .section-header-pending { border-left: 5px solid #ffc107; padding-left: 10px; color: #d39e00; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -36,57 +50,159 @@
 
         <%- include('../partials/messages') %>
 
-        <div class="content-section">
-            <h3>Takvime Meşgul/Dolu Zaman Ekle</h3>
-            <form action="/admin/randevular/create" method="POST">
-                <div class="form-group">
-                    <label for="date">Tarih</label>
-                    <input type="date" id="date" name="date" required>
-                </div>
-                <div class="row">
-                    <div class="col-md-6"><div class="form-group"><label for="startTime">Başlangıç Saati</label><input type="time" id="startTime" name="startTime" required></div></div>
-                    <div class="col-md-6"><div class="form-group"><label for="endTime">Bitiş Saati</label><input type="time" id="endTime" name="endTime" required></div></div>
-                </div>
-                <button type="submit">Takvime Ekle (Bloke Et)</button>
-            </form>
-        </div>
-
-        <div class="content-section">
-            <h3>Bloke Edilen Zaman Dilimleri</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Durum</th>
-                        <th>Tarih</th>
-                        <th>Saat</th>
-                        <th>İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (appointments && appointments.length > 0) { %>
-                        <% appointments.forEach(app => { %>
-                            <tr>
+        <div class="content-section" style="margin-top: 0;">
+            <h3 class="section-header-confirmed">Onaylanan Randevular (Takvim)</h3>
+            <% 
+                const confirmedApps = studentAppointments.filter(app => app.status === 'confirmed');
+            %>
+            <% if (confirmedApps.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih / Saat</th>
+                            <th>Öğrenci</th>
+                            <th>Konu</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% confirmedApps.forEach(app => { %>
+                            <tr style="background-color: #f0fff4;">
                                 <td>
-                                    <span class="status-busy">MEŞGUL (Bloke Edildi)</span>
+                                    <strong><%= new Date(app.startTime).toLocaleDateString('tr-TR') %></strong> <br>
+                                    <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
                                 </td>
-                                <td><%= new Date(app.startTime).toLocaleDateString('tr-TR') %></td>
-                                <td><%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %></td>
+                                <td><%= app.Student ? app.Student.username : 'Silinmiş' %></td>
+                                <td><%= app.studentNotes %></td>
+                                <td><span class="badge bg-confirmed">ONAYLANDI</span></td>
                                 <td>
-                                    <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Bu bloke kaydını silmek istediğinizden emin misiniz?');" style="margin: 0;">
+                                    <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Bu onaylı randevuyu iptal edip silmek istediğinize emin misiniz?');" style="margin:0;">
                                         <input type="hidden" name="appointmentId" value="<%= app.id %>">
-                                        <button type="submit" class="btn-sm btn-delete">Sil</button>
+                                        <button type="submit" class="btn-sm btn-delete">İptal Et / Sil</button>
                                     </form>
                                 </td>
                             </tr>
                         <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="4" style="text-align: center;">Henüz bloke edilen bir zaman dilimi yok.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="text-muted">Henüz onaylanmış, aktif bir randevunuz yok.</p>
+            <% } %>
         </div>
+
+        <hr>
+
+        <div class="content-section">
+            <h3 class="section-header-pending">Onay Bekleyenler ve Geçmiş</h3>
+            <% 
+                const otherApps = studentAppointments.filter(app => app.status !== 'confirmed');
+            %>
+            <% if (otherApps.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih / Saat</th>
+                            <th>Öğrenci</th>
+                            <th>Konu</th>
+                            <th>Durum</th>
+                            <th style="width: 200px;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% otherApps.forEach(req => { %>
+                            <tr>
+                                <td>
+                                    <%= new Date(req.startTime).toLocaleDateString('tr-TR') %> <br>
+                                    <small><%= new Date(req.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - <%= new Date(req.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %></small>
+                                </td>
+                                <td><%= req.Student ? req.Student.username : 'Bilinmiyor' %></td>
+                                <td><%= req.studentNotes %></td>
+                                <td>
+                                    <% if (req.status === 'pending') { %> <span class="badge bg-pending">Onay Bekliyor</span>
+                                    <% } else { %> <span class="badge bg-rejected">Reddedildi</span> <% } %>
+                                </td>
+                                <td>
+                                    <div style="display: flex;">
+                                        <% if (req.status === 'pending') { %>
+                                            <form action="/admin/randevular/confirm" method="POST" style="margin:0;">
+                                                <input type="hidden" name="appointmentId" value="<%= req.id %>">
+                                                <button type="submit" class="btn-sm btn-approve">Onayla</button>
+                                            </form>
+                                            <form action="/admin/randevular/reject" method="POST" style="margin:0;">
+                                                <input type="hidden" name="appointmentId" value="<%= req.id %>">
+                                                <button type="submit" class="btn-sm btn-reject">Reddet</button>
+                                            </form>
+                                        <% } %>
+                                        <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?');" style="margin:0;">
+                                            <input type="hidden" name="appointmentId" value="<%= req.id %>">
+                                            <button type="submit" class="btn-sm btn-delete">Sil</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p style="color: #666;">Bekleyen veya reddedilmiş talep yok.</p>
+            <% } %>
+        </div>
+
+        <hr style="margin: 3rem 0; border-top: 4px solid #eee;">
+
+        <div class="content-section">
+            <h3>Kendi Takvimini Yönet (Bloke Et)</h3>
+            <form action="/admin/randevular/create" method="POST" class="form-add">
+                <div class="form-group">
+                    <label for="date">Tarih</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div style="display: flex; gap: 20px;">
+                    <div class="form-group" style="flex:1;">
+                        <label for="startTime">Başlangıç</label>
+                        <input type="time" id="startTime" name="startTime" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label for="endTime">Bitiş</label>
+                        <input type="time" id="endTime" name="endTime" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Takvime Ekle (Bloke Et)</button>
+            </form>
+
+            <h4>Bloke Ettiğiniz Saatler</h4>
+            <% if (busySlots && busySlots.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Saat</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% busySlots.forEach(slot => { %>
+                            <tr>
+                                <td><%= new Date(slot.startTime).toLocaleDateString('tr-TR') %></td>
+                                <td><%= new Date(slot.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - <%= new Date(slot.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %></td>
+                                <td><span class="badge bg-busy">MEŞGUL</span></td>
+                                <td>
+                                    <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Kaldırmak istediğinize emin misiniz?');" style="margin:0;">
+                                        <input type="hidden" name="appointmentId" value="<%= slot.id %>">
+                                        <button type="submit" class="btn-sm btn-delete">Kaldır</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p style="color: #666;">Henüz bloke edilmiş bir saat yok.</p>
+            <% } %>
+        </div>
+
     </div>
 </body>
 </html>
