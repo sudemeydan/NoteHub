@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'Lokum123!';
-const ADMIN_EMAIL = 'admin@example.com'; // Buraya kendi mailini yazabilirsin
+const ADMIN_EMAIL = 'sudis.meydan@gmail.com'; // Buraya kendi mailini yazabilirsin
 
 async function createAdminUser() {
     console.log('Yönetici oluşturma betiği başlatılıyor...');

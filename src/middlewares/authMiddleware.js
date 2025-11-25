@@ -1,6 +1,5 @@
-// Admin sayfaları için middleware (Giriş yapmış mı?)
+// Admin kontrolü
 exports.isAuth = (req, res, next) => {
-    // Sadece admin oturumunu (isLoggedIn) kontrol eder
     if (req.session.isLoggedIn) {
         return next();
     }
@@ -8,35 +7,31 @@ exports.isAuth = (req, res, next) => {
     res.redirect('/admin/login');
 };
 
-// Normal kullanıcı sayfaları için middleware (Giriş yapmış mı?)
+// --- İŞTE EKSİK OLABİLECEK FONKSİYON ---
+// Normal kullanıcı kontrolü
 exports.ensureUserLoggedIn = (req, res, next) => {
-    // Hem normal kullanıcı (isUserLoggedIn) hem de admin (isLoggedIn) oturumunu kontrol eder
-    // Böylece adminler de kullanıcı sayfalarını görebilir
     if (req.session.isUserLoggedIn || req.session.isLoggedIn) {
-        return next(); // Giriş yapmışsa devam et
+        return next();
     }
-    // Giriş yapmamışsa
     req.flash('error_msg', 'Bu sayfayı görüntülemek için giriş yapmalısınız.');
-    res.redirect('/giris'); // Normal kullanıcı giriş sayfasına yönlendir
+    res.redirect('/giris');
 };
+// ---------------------------------------
 
-// Sadece Admin İzin Middleware'i (Rol kontrolü)
+// Admin yetki kontrolü
 exports.isAdmin = (req, res, next) => {
-    // Admin olarak giriş yapmış mı ve rolü 'admin' mi diye bakar
     if (req.session.isLoggedIn && req.session.user && req.session.user.role === 'admin') {
         return next();
     }
     req.flash('error_msg', 'Bu işlem için yetkiniz yok.');
-    // Kullanıcıyı ya geldiği yere ya da ana sayfaya yönlendir
     const backURL = req.header('Referer') || '/';
     res.redirect(backURL);
 };
 
-// Sadece Misafir İzin Middleware'i (Giriş yapmamışları kontrol eder)
+// Misafir kontrolü
 exports.guestMiddleware = (req, res, next) => {
-    // Hem normal kullanıcı hem de admin oturumu kontrol edilir
     if (req.session.isUserLoggedIn || req.session.isLoggedIn) {
-        return res.redirect('/'); // Giriş yapmışsa ana sayfaya yönlendir
+        return res.redirect('/');
     }
-    next(); // Giriş yapmamışsa devam et
+    next();
 };

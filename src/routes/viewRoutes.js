@@ -19,6 +19,10 @@ router.get('/odevler/:id', ensureUserLoggedIn, pageController.getSingleAssignmen
 router.get('/arama', ensureUserLoggedIn, pageController.search);
 router.get('/randevu-al', ensureUserLoggedIn, pageController.getCalendarPage);
 
+// --- EKSİK OLAN ROTA BURAYA EKLENDİ ---
+router.get('/randevularim', ensureUserLoggedIn, pageController.getStudentAppointmentsPage);
+// --------------------------------------
+
 // --- POST ROTALARI ---
 router.post('/odev-teslim', ensureUserLoggedIn, uploadSubmissionFile, pageController.postSubmission);
 router.post('/randevu-talep', ensureUserLoggedIn, pageController.createAppointmentRequest);
