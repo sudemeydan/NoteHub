@@ -38,17 +38,29 @@
                                         <% courses.forEach(course => { %>
                                             <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                                 <div>
-                                                    <a href="/admin/courses/<%= course.id %>" class="fw-bold text-decoration-none fs-5">
+                                                    <a href="/admin/courses/<%= course.id %>" class="fw-bold text-decoration-none fs-5 d-flex align-items-center">
                                                         <%= course.title %>
+                                                        <% if (!course.isPublic) { %>
+                                                            <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7em;"><i class="bi bi-lock-fill"></i> Özel</span>
+                                                        <% } else { %>
+                                                            <span class="badge bg-success ms-2" style="font-size: 0.7em;">Herkese Açık</span>
+                                                        <% } %>
                                                     </a>
                                                     <p class="mb-0 text-muted small"><%= course.description %></p>
                                                 </div>
-                                                <form action="/admin/courses/delete" method="POST" onsubmit="return confirm('Bu dersi silmek istediğinize emin misiniz?');" class="m-0">
-                                                    <input type="hidden" name="courseId" value="<%= course.id %>">
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                        <i class="bi bi-trash"></i> Sil
-                                                    </button>
-                                                </form>
+                                                
+                                                <div class="d-flex align-items-center">
+                                                    <a href="/admin/courses/edit/<%= course.id %>" class="btn btn-outline-primary btn-sm me-2">
+                                                        <i class="bi bi-pencil"></i> Düzenle
+                                                    </a>
+
+                                                    <form action="/admin/courses/delete" method="POST" onsubmit="return confirm('Bu dersi silmek istediğinize emin misiniz?');" class="m-0">
+                                                        <input type="hidden" name="courseId" value="<%= course.id %>">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="bi bi-trash"></i> Sil
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         <% }) %>
                                     </div>
@@ -70,9 +82,18 @@
                                         <label for="title" class="form-label fw-bold">Ders Başlığı</label>
                                         <input type="text" class="form-control" id="title" name="title" required placeholder="Örn: Web Programlama">
                                     </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="isPublic" class="form-label fw-bold">Görünürlük</label>
+                                        <select class="form-select" name="isPublic" id="isPublic">
+                                            <option value="true">Herkese Açık (Public)</option>
+                                            <option value="false">🔒 Sadece Üyelere Özel (Private)</option>
+                                        </select>
+                                    </div>
+                                    
                                     <div class="mb-3">
                                         <label for="description" class="form-label fw-bold">Açıklama</label>
-                                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Ders hakkında kısa bilgi..."></textarea>
+                                        <textarea class="form-control" name="description" rows="4" placeholder="Ders hakkında kısa bilgi..."></textarea>
                                     </div>
                                     <div class="d-grid">
                                         <button type="submit" class="btn btn-primary">
@@ -87,7 +108,6 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

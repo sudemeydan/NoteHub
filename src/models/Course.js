@@ -14,6 +14,12 @@ const Course = sequelize.define('Course', {
     description: {
         type: DataTypes.TEXT,
         allowNull: true
+    },
+    // --- YENİ: Dersin Görünürlüğü ---
+    isPublic: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true // Varsayılan: Herkese Açık
     }
 }, {
     tableName: 'courses'

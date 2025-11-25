@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= course.title %> - Notları</title>
     <style>
-        /* ... stiller aynı ... */
         body { font-family: sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
@@ -36,12 +35,9 @@
           plugins: 'code table lists image link media',
           toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code | image | link | media',
           height: 400,
-          
-          // --- YENİ EKLENEN RESİM YÜKLEME AYARLARI ---
           automatic_uploads: true,
-          images_upload_url: '/admin/notes/image-upload', // Resimleri bu adrese POST et
-          file_picker_types: 'image', // Sadece resim seçme penceresi açılsın
-          // --- BİTTİ ---
+          images_upload_url: '/admin/notes/image-upload',
+          file_picker_types: 'image'
         });
       });
     </script>
@@ -52,23 +48,16 @@
             <h2>Ders: <%= course.title %></h2>
             <a href="/admin/dashboard" class="back-link">Panele Geri Dön</a>
         </div>
+
         <%- include('../partials/messages') %>
-       <div class="content-section">
+
+        <div class="content-section">
             <h3>Yeni Not Ekle</h3>
             <form action="/admin/notes/create" method="POST" class="add-note-form">
                 <input type="hidden" name="courseId" value="<%= course.id %>">
-                
                 <div class="form-group">
                     <label for="title">Not Başlığı</label>
                     <input type="text" id="title" name="title" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="isPublic">Görünürlük Durumu</label>
-                    <select class="form-select" name="isPublic" id="isPublic">
-                        <option value="true" selected>Herkese Açık (Giriş yapmayanlar da görebilir)</option>
-                        <option value="false">🔒 Sadece Üyelere Özel (Kayıtlı Öğrenciler)</option>
-                    </select>
                 </div>
                 <div class="form-group">
                     <label for="note-content-editor">İçerik</label>
@@ -77,6 +66,7 @@
                 <button type="submit">Notu Kaydet</button>
             </form>
         </div>
+
         <div class="content-section">
             <h3>Bu Derse Ait Notlar</h3>
             <div class="note-list">

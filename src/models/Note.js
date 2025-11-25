@@ -14,15 +14,9 @@ const Note = sequelize.define('Note', {
     content: {
         type: DataTypes.TEXT('long'),
         allowNull: false
-    },
-    // --- YENİ SÜTUN ---
-    isPublic: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true
-    },
-    // ------------------
-    // (TinyMCE kullandığımız için imagePath/filePath'i modelden sildik/temizledik)
+    }
+    // isPublic ARTIK YOK (Ders üzerinden kontrol edilecek)
+    // imagePath ve filePath veritabanında kalsa da modelden siliyoruz, kafa karıştırmasın.
 }, {
     tableName: 'notes'
 });

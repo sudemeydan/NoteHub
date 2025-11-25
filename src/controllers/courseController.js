@@ -2,7 +2,7 @@ const db = require('../models');
 
 // POST /admin/courses/create - Yeni bir ders oluşturur
 exports.createCourse = async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description, isPublic } = req.body;
     try {
         if (!title) {
             req.flash('error_msg', 'Ders başlığı boş olamaz.');
@@ -10,7 +10,8 @@ exports.createCourse = async (req, res) => {
         }
         await db.Course.create({
             title,
-            description
+            description,
+            isPublic: isPublic === 'true' // Formdan string gelir, boolean yap
         });
         req.flash('success_msg', 'Ders başarıyla eklendi.');
         res.redirect('/admin/dashboard');
@@ -28,7 +29,7 @@ exports.getCourseDetailPage = async (req, res) => {
         const course = await db.Course.findByPk(courseId, {
             include: [{
                 model: db.Note,
-                order: [['createdAt', 'DESC']] // Notları yeniden eskiye sırala
+                order: [['createdAt', 'DESC']]
             }] 
         });
 
@@ -47,7 +48,7 @@ exports.getCourseDetailPage = async (req, res) => {
     }
 };
 
-// POST /admin/courses/delete - Bir dersi (ve notlarını) siler
+// POST /admin/courses/delete - Bir dersi siler
 exports.deleteCourse = async (req, res) => {
     const { courseId } = req.body; 
     try {
@@ -64,6 +65,50 @@ exports.deleteCourse = async (req, res) => {
     } catch (error) {
         console.error(error);
         req.flash('error_msg', 'Ders silinirken bir hata oluştu.');
+        res.redirect('/admin/dashboard');
+    }
+};
+
+// --- YENİ: Ders Düzenleme Sayfasını Göster ---
+exports.getEditCoursePage = async (req, res) => {
+    try {
+        const course = await db.Course.findByPk(req.params.id);
+        if (!course) {
+            req.flash('error_msg', 'Ders bulunamadı.');
+            return res.redirect('/admin/dashboard');
+        }
+        res.render('admin/edit-course', {
+            title: 'Dersi Düzenle',
+            course: course
+        });
+    } catch (error) {
+        console.error(error);
+        req.flash('error_msg', 'Hata oluştu.');
+        res.redirect('/admin/dashboard');
+    }
+};
+
+// --- YENİ: Ders Güncelleme İşlemi ---
+exports.updateCourse = async (req, res) => {
+    const { courseId, title, description, isPublic } = req.body;
+    try {
+        const course = await db.Course.findByPk(courseId);
+        if (!course) {
+            req.flash('error_msg', 'Ders bulunamadı.');
+            return res.redirect('/admin/dashboard');
+        }
+
+        // Bilgileri güncelle
+        course.title = title;
+        course.description = description;
+        course.isPublic = isPublic === 'true'; // Boolean çevrimi
+        await course.save();
+
+        req.flash('success_msg', 'Ders başarıyla güncellendi.');
+        res.redirect('/admin/dashboard');
+    } catch (error) {
+        console.error(error);
+        req.flash('error_msg', 'Güncelleme sırasında hata oluştu.');
         res.redirect('/admin/dashboard');
     }
 };

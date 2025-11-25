@@ -2,20 +2,18 @@ const db = require('../models');
 
 // POST /admin/notes/create - Yeni bir not oluşturur
 exports.createNote = async (req, res) => {
-    // Formdan 'isPublic' verisini de alıyoruz
-    const { title, content, courseId, isPublic } = req.body; 
-    
+    const { title, content, courseId } = req.body; 
     try {
         if (!title || !content || !courseId) {
-            req.flash('error_msg', 'Başlık ve içerik zorunludur.');
+            req.flash('error_msg', 'Tüm alanlar zorunludur.');
             return res.redirect(`/admin/courses/${courseId}`);
         }
 
         await db.Note.create({
             title: title,
             content: content,
-            courseId: courseId,
-            isPublic: isPublic === 'true' // String 'true' gelirse boolean true yap
+            courseId: courseId
+            // isPublic artık yok, ders ayarından miras alır
         });
 
         req.flash('success_msg', 'Not başarıyla eklendi.');
@@ -36,9 +34,7 @@ exports.deleteNote = async (req, res) => {
             req.flash('error_msg', 'Silinecek not bulunamadı.');
             return res.redirect(`/admin/courses/${courseId}`);
         }
-
         await note.destroy();
-
         req.flash('success_msg', 'Not başarıyla silindi.');
         res.redirect(`/admin/courses/${courseId}`);
     } catch (error) {
@@ -56,7 +52,7 @@ exports.getEditNotePage = async (req, res) => {
 
         if (!note) {
             req.flash('error_msg', 'Not bulunamadı.');
-            return res.redirect('/admin/dashboard');
+            return res.redirect('/admin/dashboard'); 
         }
 
         res.render('admin/edit-note', {
@@ -71,7 +67,7 @@ exports.getEditNotePage = async (req, res) => {
 
 // POST /admin/notes/update - Düzenlemeyi kaydeder
 exports.updateNote = async (req, res) => {
-    const { noteId, title, content, isPublic } = req.body; // isPublic eklendi
+    const { noteId, title, content } = req.body;
     let courseId;
 
     try {
@@ -84,18 +80,15 @@ exports.updateNote = async (req, res) => {
 
         courseId = note.courseId;
 
-        // Verileri güncelle
         note.title = title;
         note.content = content;
-        note.isPublic = isPublic === 'true'; // Güncelle
-        
         await note.save();
 
-        req.flash('success_msg', 'Not başarıyla güncellendi.');
+        req.flash('success_msg', 'Not güncellendi.');
         res.redirect(`/admin/courses/${courseId}`);
     } catch (error) {
         console.error(error);
-        req.flash('error_msg', 'Not güncellenirken bir hata oluştu.');
+        req.flash('error_msg', 'Hata oluştu.');
         if (courseId) {
             res.redirect(`/admin/courses/${courseId}`);
         } else {
@@ -104,7 +97,7 @@ exports.updateNote = async (req, res) => {
     }
 };
 
-// TinyMCE Resim Yükleme (Aynı kalıyor)
+// TinyMCE Resim Yükleme
 exports.uploadImage = (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'Dosya yüklenemedi.' });

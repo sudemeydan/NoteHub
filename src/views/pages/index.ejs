@@ -26,7 +26,7 @@
                                         <span class="card-category"><%= note.Course.title %></span>
                                     </div>
                                     <h5 class="card-title w-100"><%= note.title %></h5>
-                                    </a>
+                                </a>
                             </div>
                         <% }) %>
                     <% } else { %>
@@ -42,9 +42,16 @@
             <div class="course-icon-list justify-content-start">
                 <% if (courses.length > 0) { %>
                     <% courses.forEach((course, index) => { %>
-                        <a href="/dersler/<%= course.id %>" class="course-icon-item">
+                        <a href="/dersler/<%= course.id %>" class="course-icon-item position-relative">
+                            
+                            <% if (!course.isPublic) { %>
+                                <span class="position-absolute top-0 end-0 badge rounded-pill bg-warning text-dark m-1" title="Sadece Üyelere Özel" style="font-size: 0.6rem;">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                            <% } %>
+                            
                             <% 
-                                let iconClass = 'bi-folder-fill'; // Varsayılan ikon
+                                let iconClass = 'bi-folder-fill'; 
                                 if (course.title.toLowerCase().includes('c#')) iconClass = 'bi-filetype-cs';
                                 else if (course.title.toLowerCase().includes('node')) iconClass = 'bi-node-js';
                                 else if (course.title.toLowerCase().includes('python')) iconClass = 'bi-filetype-py';
@@ -62,7 +69,6 @@
             </div>
         </div>
 
-        
         <div class="col-lg-3">
             <div class="sidebar">
                 <div class="sidebar-widget mb-4">

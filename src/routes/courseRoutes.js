@@ -12,4 +12,8 @@ router.get('/courses/:id', isAuth, courseController.getCourseDetailPage);
 // POST /admin/courses/delete -> Ders silme
 router.post('/courses/delete', isAuth, courseController.deleteCourse);
 
+// --- YENİ ROTALAR (DÜZENLEME) ---
+router.get('/courses/edit/:id', isAuth, courseController.getEditCoursePage);
+router.post('/courses/update', isAuth, courseController.updateCourse);
+
 module.exports = router;
