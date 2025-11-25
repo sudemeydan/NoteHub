@@ -53,13 +53,22 @@
             <a href="/admin/dashboard" class="back-link">Panele Geri Dön</a>
         </div>
         <%- include('../partials/messages') %>
-        <div class="content-section">
+       <div class="content-section">
             <h3>Yeni Not Ekle</h3>
             <form action="/admin/notes/create" method="POST" class="add-note-form">
                 <input type="hidden" name="courseId" value="<%= course.id %>">
+                
                 <div class="form-group">
                     <label for="title">Not Başlığı</label>
                     <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="isPublic">Görünürlük Durumu</label>
+                    <select class="form-select" name="isPublic" id="isPublic">
+                        <option value="true" selected>Herkese Açık (Giriş yapmayanlar da görebilir)</option>
+                        <option value="false">🔒 Sadece Üyelere Özel (Kayıtlı Öğrenciler)</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="note-content-editor">İçerik</label>

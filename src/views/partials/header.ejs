@@ -15,6 +15,8 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/main.min.css' rel='stylesheet' />
+
     <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -34,15 +36,21 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle me-1"></i> <%= currentUser.username %>
+                                <% if (isAdminLoggedIn) { %> <span class="badge bg-danger ms-1">Yönetici</span> <% } %>
                             </a>
+                            
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                
                                 <% if (isAdminLoggedIn) { %>
                                     <li><a class="dropdown-item" href="/admin/dashboard"><i class="bi bi-speedometer2 me-2"></i>Admin Paneli</a></li>
+                                    <% } else { %>
+                                    <li><a class="dropdown-item" href="/odevlerim"><i class="bi bi-journal-check me-2"></i>Ödevlerim</a></li>
+                                    <li><a class="dropdown-item" href="/randevularim"><i class="bi bi-calendar-check me-2"></i>Randevularım</a></li>
+                                    <li><a class="dropdown-item" href="/randevu-al"><i class="bi bi-calendar-plus me-2"></i>Randevu Al</a></li>
                                 <% } %>
-                                <li><a class="dropdown-item" href="/odevlerim"><i class="bi bi-journal-check me-2"></i>Ödevlerim</a></li>
-                                <li><a class="dropdown-item" href="/randevularim"><i class="bi bi-calendar-check me-2"></i>Randevularım</a></li>
-                                <li><a class="dropdown-item" href="/randevu-al"><i class="bi bi-calendar-plus me-2"></i>Randevu Al</a></li>
+                                
                                 <li><a class="dropdown-item" href="/forum"><i class="bi bi-chat-dots-fill me-2"></i>Forum</a></li>
+                                
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/cikis"><i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap</a></li>
                             </ul>
@@ -68,4 +76,4 @@
         </div> 
     </nav>
 
-    <main class="container-fluid flex-grow-1 <% if (title !== 'Kayıt Ol' && title !== 'Giriş Yap') { %>py-5<% } else { %>p-0<% } %>">   
+    <main class="container-fluid flex-grow-1 <% if (title !== 'Kayıt Ol' && title !== 'Giriş Yap') { %>py-5<% } else { %>p-0<% } %>">

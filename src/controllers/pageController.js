@@ -19,26 +19,72 @@ exports.getHomePage = async (req, res) => {
 };
 
 // GET /dersler/:id
+// GET /dersler/:id
 exports.getCoursePage = async (req, res) => {
     try {
+        // Notları filtreleme koşulu
+        let noteWhereClause = {};
+        
+        // Eğer kullanıcı giriş YAPMAMIŞSA, sadece 'isPublic: true' olanları getir
+        if (!req.session.isUserLoggedIn && !req.session.isLoggedIn) {
+            noteWhereClause = { isPublic: true };
+        }
+
         const course = await db.Course.findByPk(req.params.id, {
-            include: [{ model: db.Note, order: [['createdAt', 'DESC']] }]
+            include: [{
+                model: db.Note,
+                where: noteWhereClause, // Filtreyi uygula
+                required: false, // Hiç not yoksa da dersi getir
+                order: [['createdAt', 'DESC']]
+            }]
         });
-        if (!course) { req.flash('error_msg', 'Ders bulunamadı.'); return res.redirect('/'); }
-        res.render('pages/course', { title: course.title, course });
+
+        if (!course) {
+             req.flash('error_msg', 'Ders bulunamadı veya erişim izniniz yok.');
+             return res.redirect('/');
+        }
+
+        res.render('pages/course', {
+            title: course.title,
+            course: course
+        });
     } catch (error) {
-         req.flash('error_msg', 'Hata oluştu.'); res.redirect('/');
+        console.error("Course Page Error:", error);
+         req.flash('error_msg', 'Sayfa yüklenirken bir hata oluştu.');
+         res.redirect('/');
     }
 };
 
 // GET /notlar/:id
+// GET /notlar/:id
 exports.getNotePage = async (req, res) => {
     try {
-        const note = await db.Note.findByPk(req.params.id, { include: [db.Course] });
-        if (!note) { req.flash('error_msg', 'Not bulunamadı.'); return res.redirect('/'); }
-        res.render('pages/note', { title: note.title, note });
+        const note = await db.Note.findByPk(req.params.id, {
+            include: [db.Course]
+        });
+
+        if (!note) {
+             req.flash('error_msg', 'Not bulunamadı.');
+             return res.redirect('/');
+        }
+
+        // KONTROL: Not gizli mi?
+        if (!note.isPublic) {
+            // Gizliyse, kullanıcı giriş yapmış mı?
+            if (!req.session.isUserLoggedIn && !req.session.isLoggedIn) {
+                req.flash('error_msg', 'Bu not sadece üyelere özeldir. Lütfen giriş yapın.');
+                return res.redirect('/giris');
+            }
+        }
+
+        res.render('pages/note', {
+            title: note.title,
+            note: note
+        });
     } catch (error) {
-        req.flash('error_msg', 'Hata oluştu.'); res.redirect('/');
+        console.error("Note Page Error:", error);
+        req.flash('error_msg', 'Sayfa yüklenirken bir hata oluştu.');
+        res.redirect('/');
     }
 };
 

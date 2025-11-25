@@ -45,16 +45,26 @@
             <h2><%= title %>: <span style="font-weight: 400;"><%= note.title %></span></h2>
             <a href="/admin/courses/<%= note.courseId %>" class="back-link">&larr; Derse Geri Dön</a>
         </div>
-        <form action="/admin/notes/update" method="POST" class="edit-form">
+       <form action="/admin/notes/update" method="POST" class="edit-form">
             <input type="hidden" name="noteId" value="<%= note.id %>">
+
             <div class="form-group">
                 <label for="title">Not Başlığı</label>
                 <input type="text" id="title" name="title" value="<%= note.title %>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="isPublic">Görünürlük Durumu</label>
+                <select class="form-select" name="isPublic" id="isPublic">
+                    <option value="true" <%= note.isPublic ? 'selected' : '' %>>Herkese Açık</option>
+                    <option value="false" <%= !note.isPublic ? 'selected' : '' %>>🔒 Sadece Üyelere Özel</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="note-content-editor">İçerik</label>
                 <textarea id="note-content-editor" name="content"><%- note.content %></textarea>
             </div>
+
             <button type="submit" class="update-button">Notu Güncelle</button>
         </form>
     </div>

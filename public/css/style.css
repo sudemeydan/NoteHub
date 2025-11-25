@@ -443,3 +443,101 @@ code[class*="language-"] {
     padding: 2px 6px;
     border-radius: 4px;
 }
+
+
+/* =================================== */
+/* 13. ADMIN PANELİ STİLLERİ (YENİ)    */
+/* =================================== */
+
+.admin-wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #f3f4f6;
+}
+
+/* Sidebar (Sol Menü) */
+.admin-sidebar {
+    min-width: 260px;
+    max-width: 260px;
+    background: #212529;
+    color: #fff;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
+
+.admin-sidebar .sidebar-header {
+    padding: 20px;
+    background: #1a1d20;
+    border-bottom: 1px solid #343a40;
+}
+
+.admin-sidebar ul.components {
+    padding: 20px 0;
+}
+
+.admin-sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    display: block;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.admin-sidebar ul li a:hover, 
+.admin-sidebar ul li a.active {
+    color: #fff;
+    background: #0d6efd; /* Bootstrap Primary */
+    padding-left: 25px;
+}
+
+.admin-sidebar ul li a i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* İçerik Alanı */
+.admin-content {
+    width: 100%;
+    padding: 0;
+}
+
+.admin-topbar {
+    background: #fff;
+    padding: 15px 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-main-container {
+    padding: 0 30px 30px 30px;
+}
+
+.admin-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    border: none;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.admin-card-header {
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}

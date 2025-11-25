@@ -12,19 +12,17 @@ const Note = sequelize.define('Note', {
         allowNull: false
     },
     content: {
-        type: DataTypes.TEXT('long'), // Burası artık Markdown metni saklayacak
+        type: DataTypes.TEXT('long'),
         allowNull: false
     },
-    // --- YENİ SÜTUNLAR ---
-    imagePath: {
-        type: DataTypes.STRING, // Notun kapak/ana resmi
-        allowNull: true
+    // --- YENİ SÜTUN ---
+    isPublic: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
     },
-    filePath: {
-        type: DataTypes.STRING, // Notla ilgili PDF, ZIP vb. dosya
-        allowNull: true
-    }
-    // course_id alanı ilişkilerde
+    // ------------------
+    // (TinyMCE kullandığımız için imagePath/filePath'i modelden sildik/temizledik)
 }, {
     tableName: 'notes'
 });
