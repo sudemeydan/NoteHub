@@ -16,10 +16,7 @@
         <div class="admin-content">
             <div class="admin-topbar">
                 <h4 class="mb-0 text-dark">Ders Yönetimi</h4>
-                <div class="user-info">
-                    <span class="me-2 text-muted">Hoş geldin,</span>
-                    <strong class="text-dark"><%= currentUser.username %></strong>
-                </div>
+                <div class="user-info"><strong class="text-dark"><%= currentUser.username %></strong></div>
             </div>
 
             <div class="admin-main-container">
@@ -38,27 +35,19 @@
                                         <% courses.forEach(course => { %>
                                             <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                                                 <div>
-                                                    <a href="/admin/courses/<%= course.id %>" class="fw-bold text-decoration-none fs-5 d-flex align-items-center">
+                                                    <a href="/admin/courses/<%= course.id %>" class="fw-bold text-decoration-none fs-5">
                                                         <%= course.title %>
                                                         <% if (!course.isPublic) { %>
-                                                            <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7em;"><i class="bi bi-lock-fill"></i> Özel</span>
-                                                        <% } else { %>
-                                                            <span class="badge bg-success ms-2" style="font-size: 0.7em;">Herkese Açık</span>
+                                                            <span class="badge bg-warning text-dark ms-2"><i class="bi bi-lock-fill"></i> Özel</span>
                                                         <% } %>
                                                     </a>
                                                     <p class="mb-0 text-muted small"><%= course.description %></p>
                                                 </div>
-                                                
                                                 <div class="d-flex align-items-center">
-                                                    <a href="/admin/courses/edit/<%= course.id %>" class="btn btn-outline-primary btn-sm me-2">
-                                                        <i class="bi bi-pencil"></i> Düzenle
-                                                    </a>
-
-                                                    <form action="/admin/courses/delete" method="POST" onsubmit="return confirm('Bu dersi silmek istediğinize emin misiniz?');" class="m-0">
+                                                    <a href="/admin/courses/edit/<%= course.id %>" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-pencil"></i></a>
+                                                    <form action="/admin/courses/delete" method="POST" onsubmit="return confirm('Sil?');" class="m-0">
                                                         <input type="hidden" name="courseId" value="<%= course.id %>">
-                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                            <i class="bi bi-trash"></i> Sil
-                                                        </button>
+                                                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
                                                     </form>
                                                 </div>
                                             </div>
@@ -73,32 +62,26 @@
 
                     <div class="col-lg-4">
                         <div class="admin-card">
-                            <div class="admin-card-header bg-light">
-                                <h3>+ Yeni Ders Ekle</h3>
-                            </div>
+                            <div class="admin-card-header bg-light"><h3>+ Yeni Ders Ekle</h3></div>
                             <div class="card-body p-4">
                                 <form action="/admin/courses/create" method="POST">
                                     <div class="mb-3">
-                                        <label for="title" class="form-label fw-bold">Ders Başlığı</label>
-                                        <input type="text" class="form-control" id="title" name="title" required placeholder="Örn: Web Programlama">
+                                        <label class="form-label fw-bold">Ders Başlığı</label>
+                                        <input type="text" class="form-control" name="title" required>
                                     </div>
-                                    
                                     <div class="mb-3">
-                                        <label for="isPublic" class="form-label fw-bold">Görünürlük</label>
-                                        <select class="form-select" name="isPublic" id="isPublic">
-                                            <option value="true">Herkese Açık (Public)</option>
-                                            <option value="false">🔒 Sadece Üyelere Özel (Private)</option>
+                                        <label class="form-label">Görünürlük</label>
+                                        <select class="form-select" name="isPublic">
+                                            <option value="true">Herkese Açık</option>
+                                            <option value="false">Sadece Üyelere</option>
                                         </select>
                                     </div>
-                                    
                                     <div class="mb-3">
-                                        <label for="description" class="form-label fw-bold">Açıklama</label>
-                                        <textarea class="form-control" name="description" rows="4" placeholder="Ders hakkında kısa bilgi..."></textarea>
+                                        <label class="form-label">Açıklama</label>
+                                        <textarea class="form-control" name="description" rows="4"></textarea>
                                     </div>
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-plus-lg"></i> Dersi Oluştur
-                                        </button>
+                                        <button type="submit" class="btn btn-primary">Dersi Oluştur</button>
                                     </div>
                                 </form>
                             </div>

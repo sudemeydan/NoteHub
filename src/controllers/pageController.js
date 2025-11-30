@@ -2,7 +2,7 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
 
-// Fonksiyonları 'const' olarak tanımlıyoruz
+// GET / - Ana sayfa (ESKİ HALİ: Dersleri gönderir)
 const getHomePage = async (req, res) => {
     try {
         const [courses, latestNotes, popularNotes] = await Promise.all([
@@ -16,6 +16,11 @@ const getHomePage = async (req, res) => {
         res.status(500).send('Sayfa yüklenirken bir hata oluştu.');
     }
 };
+
+// ... (AŞAĞIDAKİ DİĞER FONKSİYONLARINIZ AYNI KALABİLİR) ...
+// getCoursePage, getNotePage, getMyNotesPage, getAssignmentsListPage, 
+// getSingleAssignmentPage, postSubmission, search, getCalendarPage, 
+// createAppointmentRequest, getStudentAppointmentsPage
 
 const getCoursePage = async (req, res) => {
     try {

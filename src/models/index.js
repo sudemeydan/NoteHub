@@ -9,7 +9,7 @@ const Post = require('./Post');
 const Reply = require('./Reply');
 const Assignment = require('./Assignment');
 const Submission = require('./Submission');
-const Appointment = require('./Appointment'); // <-- EKSİK OLAN BUYDU
+const Appointment = require('./Appointment');
 
 // --- TÜM İLİŞKİLERİ TANIMLA ---
 
@@ -17,7 +17,7 @@ const Appointment = require('./Appointment'); // <-- EKSİK OLAN BUYDU
 Course.hasMany(Note, { foreignKey: 'courseId', onDelete: 'CASCADE' });
 Note.belongsTo(Course, { foreignKey: 'courseId' });
 
-// 2. Forum (Arkadaşınızın)
+// 2. Forum
 User.hasMany(Post, { foreignKey: 'userId' });
 Post.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(Reply, { foreignKey: 'userId' });
@@ -33,24 +33,11 @@ Submission.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(Assignment, { foreignKey: 'teacherId' });
 Assignment.belongsTo(User, { foreignKey: 'teacherId', as: 'Teacher' });
 
-// --- 4. RANDEVU İLİŞKİLERİ (EKSİK OLAN KISIM) ---
-User.hasMany(Appointment, {
-    foreignKey: 'teacherId',
-    as: 'TeacherAppointments'
-});
-Appointment.belongsTo(User, {
-    foreignKey: 'teacherId',
-    as: 'Teacher'
-});
-User.hasMany(Appointment, {
-    foreignKey: 'studentId',
-    as: 'StudentAppointments'
-});
-Appointment.belongsTo(User, {
-    foreignKey: 'studentId',
-    as: 'Student'
-});
-// --- İLİŞKİLER SONU ---
+// 4. Randevu İlişkileri
+User.hasMany(Appointment, { foreignKey: 'teacherId', as: 'TeacherAppointments' });
+Appointment.belongsTo(User, { foreignKey: 'teacherId', as: 'Teacher' });
+User.hasMany(Appointment, { foreignKey: 'studentId', as: 'StudentAppointments' });
+Appointment.belongsTo(User, { foreignKey: 'studentId', as: 'Student' });
 
 const db = {
     sequelize,
@@ -62,7 +49,7 @@ const db = {
     Reply,
     Assignment,
     Submission,
-    Appointment // <-- EKSİK OLAN BUYDU
+    Appointment
 };
 
 module.exports = db;

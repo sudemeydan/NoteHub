@@ -3,9 +3,9 @@ const path = require('path');
 const dotenv = require('dotenv');
 const session = require('express-session');
 const flash = require('connect-flash');
+// Middleware importunu garantiye alıyoruz
 const { ensureUserLoggedIn } = require('./src/middlewares/authMiddleware'); 
 
-// Rota Tanımlamaları
 const viewRoutes = require('./src/routes/viewRoutes');
 const userAuthRoutes = require('./src/routes/userAuthRoutes');
 const authRoutes = require('./src/routes/authRoutes'); 
@@ -13,10 +13,9 @@ const courseRoutes = require('./src/routes/courseRoutes');
 const noteRoutes = require('./src/routes/noteRoutes');
 const assignmentRoutes = require('./src/routes/assignmentRoutes');
 const forumRoutes = require('./src/routes/forumRoutes');
-const appointmentRoutes = require('./src/routes/appointmentRoutes'); // Randevu rotasını ekledik
+const appointmentRoutes = require('./src/routes/appointmentRoutes');
 
-// Import database and models
-const db = require('./src/models'); // Artık güncel index.js'i okuyacak
+const db = require('./src/models');
 
 dotenv.config();
 const app = express();
@@ -31,24 +30,19 @@ const PORT = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 
-// Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Session ve Flash
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        // maxAge: ... (kaldırıldı, tarayıcı kapanana kadar sürer)
-    }
+    cookie: {}
 }));
 app.use(flash()); 
 
-// Global Değişkenler
 app.use((req, res, next) => {
     res.locals.isAdminLoggedIn = req.session.isLoggedIn || false; 
     res.locals.isUserLoggedIn = req.session.isUserLoggedIn || false; 
@@ -58,29 +52,23 @@ app.use((req, res, next) => {
     next();
 });
 
-// --- ROTALAR ---
+// Rotaları Kullan
 app.use('/', viewRoutes);                 
 app.use('/', userAuthRoutes);             
 app.use('/admin', authRoutes);            
 app.use('/admin', courseRoutes);          
 app.use('/admin', noteRoutes);
 app.use('/admin', assignmentRoutes);
-app.use('/admin', appointmentRoutes); // Randevu rotasını ekledik
+app.use('/admin', appointmentRoutes);
+// Burada ensureUserLoggedIn artık undefined olmayacak
 app.use('/forum', ensureUserLoggedIn, forumRoutes);
 
-// Sunucuyu Başlatma
 async function startServer() {
     try {
         await db.sequelize.authenticate();
         console.log('Veritabanı bağlantısı başarıyla kuruldu.'); 
-
-      
-        
-        await db.sequelize.sync({ force: false }); // DİKKAT: force: true
-        
-        console.log('Tablolar başarıyla senkronize edildi (force: true).'); 
-        // -----------------------------------------------------------------
-
+        await db.sequelize.sync({ force: false }); 
+        console.log('Tablolar başarıyla senkronize edildi.'); 
         app.listen(PORT, () => {
             console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor`); 
         });
@@ -89,5 +77,4 @@ async function startServer() {
     }
 }
 
-// Start the server
 startServer();

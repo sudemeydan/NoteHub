@@ -1,5 +1,5 @@
 // Admin kontrolü
-exports.isAuth = (req, res, next) => {
+const isAuth = (req, res, next) => {
     if (req.session.isLoggedIn) {
         return next();
     }
@@ -7,19 +7,18 @@ exports.isAuth = (req, res, next) => {
     res.redirect('/admin/login');
 };
 
-// --- İŞTE EKSİK OLABİLECEK FONKSİYON ---
 // Normal kullanıcı kontrolü
-exports.ensureUserLoggedIn = (req, res, next) => {
+const ensureUserLoggedIn = (req, res, next) => {
+    // Kullanıcı veya Admin giriş yapmışsa izin ver
     if (req.session.isUserLoggedIn || req.session.isLoggedIn) {
         return next();
     }
     req.flash('error_msg', 'Bu sayfayı görüntülemek için giriş yapmalısınız.');
     res.redirect('/giris');
 };
-// ---------------------------------------
 
 // Admin yetki kontrolü
-exports.isAdmin = (req, res, next) => {
+const isAdmin = (req, res, next) => {
     if (req.session.isLoggedIn && req.session.user && req.session.user.role === 'admin') {
         return next();
     }
@@ -28,10 +27,18 @@ exports.isAdmin = (req, res, next) => {
     res.redirect(backURL);
 };
 
-// Misafir kontrolü
-exports.guestMiddleware = (req, res, next) => {
+// Misafir kontrolü (Giriş yapmışsa login/register'a giremesin)
+const guestMiddleware = (req, res, next) => {
     if (req.session.isUserLoggedIn || req.session.isLoggedIn) {
         return res.redirect('/');
     }
     next();
+};
+
+// BU KISIM ÇOK ÖNEMLİ: Hepsi tek bir paket olarak dışa aktarılıyor
+module.exports = {
+    isAuth,
+    ensureUserLoggedIn,
+    isAdmin,
+    guestMiddleware
 };

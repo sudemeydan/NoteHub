@@ -1,125 +1,152 @@
 <%- include('../partials/header') %>
 
-<div class="hero-section mb-5">
-    <img src="https://source.unsplash.com/random/1600x600?technology,coding,education" alt="Hero Background" class="hero-bg">
+<div class="hero-section" style="background-image: url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');">
+    <div class="hero-overlay"></div>
     <div class="hero-content">
-        <h1 class="display-4">Geleceğinizi Kodlayın</h1>
-        <p class="lead">Web geliştirme, yapay zeka ve daha fazlası hakkında güncel notlara ve derslere ulaşın.</p>
-        <a href="#latest-notes" class="btn btn-primary btn-lg">Keşfetmeye Başla <i class="bi bi-arrow-right-short"></i></a>
+        <h1 class="display-3 fw-bold">Geleceğinizi Kodlayın</h1>
+        <p class="lead">Web geliştirme, yapay zeka ve modern teknolojiler hakkında en güncel ders notlarına ve kaynaklara tek bir yerden ulaşın.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#tum-dersler" class="btn btn-primary btn-lg">Derslere Göz At <i class="bi bi-arrow-down-short"></i></a>
+            <% if (!isUserLoggedIn) { %>
+                <a href="/kayit" class="btn btn-outline-light btn-lg" style="border-radius: 50px; padding: 0.8rem 2rem;">Aramıza Katıl</a>
+            <% } %>
+        </div>
     </div>
 </div>
 
 <div class="container mb-5">
-    <div class="row">
-        
-        <div class="col-lg-9">
-            <h2 class="section-title mb-4" id="latest-notes">Son Eklenen Notlar</h2>
+    <div class="row g-5"> <div class="col-lg-8">
             
-            <div class="swiper mySwiper mb-5">
-                <div class="swiper-wrapper">
-                    <% if (latestNotes.length > 0) { %>
-                        <% latestNotes.forEach((note, index) => { %>
+            <section class="mb-5">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <h2 class="section-title mb-0">Son Eklenen Notlar</h2>
+                </div>
+                
+                <div class="swiper mySwiper pb-5"> <div class="swiper-wrapper">
+                        <% if (latestNotes.length > 0) { %>
+                            <% latestNotes.forEach((note, index) => { %>
+                                <div class="swiper-slide">
+                                    <a href="/notlar/<%= note.id %>" class="text-decoration-none">
+                                        <div class="card h-100 border-0">
+                                            <div class="position-relative">
+                                                <img src="https://source.unsplash.com/random/400x250?coding,technology&sig=<%= index %>" class="card-img-top" alt="<%= note.title %>">
+                                                <span class="badge bg-primary position-absolute top-0 start-0 m-3"><%= note.Course.title %></span>
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title fw-bold text-dark mb-0"><%= note.title %></h5>
+                                                <small class="text-muted mt-2 d-block"><i class="bi bi-calendar3 me-1"></i> <%= new Date(note.createdAt).toLocaleDateString('tr-TR') %></small>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
                             <div class="swiper-slide">
-                                <a href="/notlar/<%= note.id %>" class="note-card-small flex-column align-items-start p-3">
-                                    <div class="card-img-container mb-3" style="width: 100%; height: 180px;">
-                                        <img src="https://source.unsplash.com/random/400x200?note,programming,<%= note.Course.title %>&sig=<%= index %>" alt="<%= note.title %>" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                                        <span class="card-category"><%= note.Course.title %></span>
+                                <div class="alert alert-light text-center">Henüz not eklenmemiş.</div>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                </div>
+            </section>
+
+            <section id="tum-dersler">
+                <h2 class="section-title mb-4">Tüm Dersler</h2>
+                
+                <% if (courses.length > 0) { %>
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        <% courses.forEach((course) => { %>
+                            <div class="col">
+                                <a href="/dersler/<%= course.id %>" class="text-decoration-none">
+                                    <div class="course-card-modern h-100">
+                                        <% 
+                                            let icon = 'bi-journal-code';
+                                            let t = course.title.toLowerCase();
+                                            if (t.includes('c#') || t.includes('.net')) icon = 'bi-filetype-cs';
+                                            else if (t.includes('js') || t.includes('node')) icon = 'bi-filetype-js';
+                                            else if (t.includes('python')) icon = 'bi-filetype-py';
+                                            else if (t.includes('java')) icon = 'bi-filetype-java';
+                                            else if (t.includes('html') || t.includes('css')) icon = 'bi-filetype-html';
+                                            else if (t.includes('veri') || t.includes('sql')) icon = 'bi-database';
+                                            else if (t.includes('yapay') || t.includes('ai')) icon = 'bi-cpu';
+                                        %>
+                                        
+                                        <div class="icon-box">
+                                            <i class="bi <%= icon %>"></i>
+                                        </div>
+                                        
+                                        <h5 class="text-dark fw-bold"><%= course.title %></h5>
+                                        <% if (course.description) { %>
+                                            <p class="mb-0 text-muted text-truncate" style="max-width: 100%;"><%= course.description %></p>
+                                        <% } %>
+
+                                        <% if (!course.isPublic) { %>
+                                            <span class="position-absolute top-0 end-0 m-3 text-warning" title="Sadece Üyelere Özel">
+                                                <i class="bi bi-lock-fill fs-5"></i>
+                                            </span>
+                                        <% } %>
                                     </div>
-                                    <h5 class="card-title w-100"><%= note.title %></h5>
                                 </a>
                             </div>
                         <% }) %>
-                    <% } else { %>
-                        <div class="swiper-slide text-center p-4 text-muted">Henüz hiç not eklenmemiş.</div>
-                    <% } %>
-                </div>
-                <div class="swiper-pagination"></div>
-                <div class="swiper-button-next"></div>
-                <div class="swiper-button-prev"></div>
-            </div>
-
-            <h2 class="section-title mt-5 mb-4">Ders Kategorileri</h2>
-            <div class="course-icon-list justify-content-start">
-                <% if (courses.length > 0) { %>
-                    <% courses.forEach((course, index) => { %>
-                        <a href="/dersler/<%= course.id %>" class="course-icon-item position-relative">
-                            
-                            <% if (!course.isPublic) { %>
-                                <span class="position-absolute top-0 end-0 badge rounded-pill bg-warning text-dark m-1" title="Sadece Üyelere Özel" style="font-size: 0.6rem;">
-                                    <i class="bi bi-lock-fill"></i>
-                                </span>
-                            <% } %>
-                            
-                            <% 
-                                let iconClass = 'bi-folder-fill'; 
-                                if (course.title.toLowerCase().includes('c#')) iconClass = 'bi-filetype-cs';
-                                else if (course.title.toLowerCase().includes('node')) iconClass = 'bi-node-js';
-                                else if (course.title.toLowerCase().includes('python')) iconClass = 'bi-filetype-py';
-                                else if (course.title.toLowerCase().includes('web')) iconClass = 'bi-globe';
-                                else if (course.title.toLowerCase().includes('java')) iconClass = 'bi-filetype-java';
-                                else if (course.title.toLowerCase().includes('yapay zeka')) iconClass = 'bi-robot';
-                            %>
-                            <i class="bi <%= iconClass %> course-icon"></i>
-                            <span class="course-title"><%= course.title %></span>
-                        </a>
-                    <% }) %>
+                    </div>
                 <% } else { %>
-                    <p class="text-center text-muted col-12">Gösterilecek ders bulunamadı.</p>
+                    <div class="text-center py-5 bg-white rounded-3 shadow-sm">
+                        <i class="bi bi-folder2-open display-4 text-muted mb-3"></i>
+                        <p class="lead text-muted">Henüz hiç ders eklenmemiş.</p>
+                    </div>
                 <% } %>
-            </div>
+            </section>
+
         </div>
 
-        <div class="col-lg-3">
+        <div class="col-lg-4">
             <div class="sidebar">
-                <div class="sidebar-widget mb-4">
-                    <form id="searchForm" class="d-flex" onsubmit="return false;">
-                        <input type="text" class="form-control me-2" id="searchInput" placeholder="Notlarda ara..." aria-label="Search" autocomplete="off">
-                        <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
-                    </form>
-                    <div id="searchResults" class="search-results-list"></div>
-                </div>
-
+                
                 <div class="sidebar-widget">
-                    <h5 class="widget-title">Son Yazılar</h5>
-                    <ul class="list-group list-group-flush">
-                        <% if (latestNotes.length > 0) { %>
-                            <% latestNotes.forEach(note => { %>
-                                <li class="list-group-item">
-                                    <a href="/notlar/<%= note.id %>"><%= note.title %></a>
-                                </li>
-                            <% }) %>
-                        <% } else { %>
-                            <li class="list-group-item text-muted">Henüz hiç not eklenmemiş.</li>
-                        <% } %>
-                    </ul>
+                    <form id="searchForm" class="position-relative" onsubmit="return false;">
+                        <input type="text" class="form-control form-control-lg ps-5" id="searchInput" placeholder="Notlarda ara..." autocomplete="off" style="border-radius: 50px; font-size: 0.95rem;">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    </form>
+                    <div id="searchResults" class="search-results-list mt-2 shadow-sm rounded-3 overflow-hidden"></div>
                 </div>
 
-                <div class="sidebar-widget mt-4">
-                    <h5 class="widget-title">Popüler Yazılar</h5>
-                    <ul class="list-group list-group-flush">
+                <div class="sidebar-widget mt-5">
+                    <h5>🔥 Popüler İçerikler</h5>
+                    <div class="list-group list-group-flush">
                         <% if (popularNotes.length > 0) { %>
                             <% popularNotes.forEach(note => { %>
-                                <li class="list-group-item">
-                                    <a href="/notlar/<%= note.id %>"><%= note.title %></a>
-                                </li>
+                                <a href="/notlar/<%= note.id %>" class="list-group-item list-group-item-action d-flex align-items-center py-3 px-0">
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="bi bi-file-text text-primary fs-4"></i>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark"><%= note.title %></h6>
+                                        <small class="text-muted"><%= note.Course.title %></small>
+                                    </div>
+                                </a>
                             <% }) %>
                         <% } else { %>
-                            <li class="list-group-item text-muted">Henüz hiç popüler not bulunamadı.</li>
+                            <p class="text-muted small">Henüz popüler içerik yok.</p>
                         <% } %>
-                    </ul>
-                </div>
-
-                <div class="sidebar-widget text-center mt-4">
-                    <h5 class="widget-title">Bizi Takip Edin</h5>
-                    <div class="social-icons-large">
-                        <a href="#" target="_blank"><i class="bi bi-github"></i></a>
-                        <a href="#" target="_blank"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" target="_blank"><i class="bi bi-twitter"></i></a>
-                        <a href="#" target="_blank"><i class="bi bi-instagram"></i></a>
                     </div>
                 </div>
+
+                <div class="sidebar-widget mt-5">
+                    <h5>Bizi Takip Edin</h5>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="#" class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-github"></i></a>
+                        <a href="#" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-linkedin"></i></a>
+                        <a href="#" class="btn btn-outline-info rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+
             </div>
         </div>
+
     </div>
 </div>
 

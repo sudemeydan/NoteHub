@@ -1,60 +1,44 @@
 const bcrypt = require('bcryptjs');
 const db = require('../models');
 
-// GET /admin/login - Admin giriş sayfasını gösterir
+// GET /admin/login - Giriş sayfası
 exports.getLoginPage = (req, res) => {
-    // Admin giriş sayfasını render et
-    // Eğer daha önce admin/login.ejs oluşturmadıysak, oluşturmalıyız.
-    // Varsayılan olarak 'admin/login' olduğunu varsayıyorum.
     if (req.session.isLoggedIn) {
-        return res.redirect('/admin/dashboard'); // Zaten giriş yapmışsa panele yönlendir
+        return res.redirect('/admin/dashboard');
     }
     res.render('admin/login', { 
         title: 'Admin Girişi' 
-        // Not: 'admin/login.ejs' dosyanızın olduğundan emin olun.
-        // Eğer 'pages/login.ejs'yi kullanıyorsanız, burası 'pages/login' olmalı.
-        // Ama admin için ayrı bir login sayfası olması en iyisidir.
     });
 };
 
-// POST /admin/login - Admin giriş işlemini gerçekleştirir
+// POST /admin/login - Giriş işlemi
 exports.postLogin = async (req, res) => {
     const { username, password } = req.body;
 
     try {
         const user = await db.User.findOne({ where: { username: username } });
 
-        // 1. Kullanıcı bulunamadıysa
         if (!user) {
             req.flash('error_msg', 'Kullanıcı adı veya şifre hatalı.');
             return res.redirect('/admin/login');
         }
 
-        // 2. Parolayı karşılaştır
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (isMatch) {
-            // Parola doğruysa, session oluştur
-            req.session.isLoggedIn = true; // Admin oturumu
-            
-            // --- DÜZELTME BURADA ---
-            // Oturuma 'role' bilgisini de ekliyoruz!
+            req.session.isLoggedIn = true;
             req.session.user = { 
                 id: user.id, 
                 username: user.username, 
-                role: user.role // <-- EKLENEN SATIR
+                role: user.role 
             };
-            // -----------------------
             
             return req.session.save(err => {
-                if (err) {
-                    console.log(err);
-                }
+                if (err) console.log(err);
                 req.flash('success_msg', 'Admin olarak başarıyla giriş yaptınız.');
                 res.redirect('/admin/dashboard');
             });
         } else {
-            // Parola yanlışsa
             req.flash('error_msg', 'Kullanıcı adı veya şifre hatalı.');
             return res.redirect('/admin/login');
         }
@@ -64,20 +48,21 @@ exports.postLogin = async (req, res) => {
     }
 };
 
-// GET /admin/logout - Admin çıkış işlemini gerçekleştirir
+// GET /admin/logout - Çıkış
 exports.postLogout = (req, res) => {
     req.session.destroy(err => {
-        if (err) {
-            console.log(err);
-        }
-        res.redirect('/'); // Çıkış yapınca ana sayfaya yönlendir
+        if (err) console.log(err);
+        res.redirect('/');
     });
 };
 
-// GET /admin/dashboard - Dashboard sayfasını gösterir
+// GET /admin/dashboard - Panel
 exports.getDashboardPage = async (req, res) => {
     try {
+        // HATA BURADAYDI: Eski kodda burada 'db.Category.findAll()' vardı.
+        // Artık sadece Dersleri çekiyoruz.
         const courses = await db.Course.findAll({ order: [['createdAt', 'DESC']] });
+        
         res.render('admin/dashboard', {
             title: 'Yönetici Paneli',
             courses: courses

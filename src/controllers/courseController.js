@@ -8,10 +8,11 @@ exports.createCourse = async (req, res) => {
             req.flash('error_msg', 'Ders başlığı boş olamaz.');
             return res.redirect('/admin/dashboard');
         }
+        // Kategori olmadan oluştur
         await db.Course.create({
             title,
             description,
-            isPublic: isPublic === 'true' // Formdan string gelir, boolean yap
+            isPublic: isPublic === 'true' 
         });
         req.flash('success_msg', 'Ders başarıyla eklendi.');
         res.redirect('/admin/dashboard');
@@ -69,7 +70,7 @@ exports.deleteCourse = async (req, res) => {
     }
 };
 
-// --- YENİ: Ders Düzenleme Sayfasını Göster ---
+// DERS DÜZENLEME (Eğer eklediysek)
 exports.getEditCoursePage = async (req, res) => {
     try {
         const course = await db.Course.findByPk(req.params.id);
@@ -77,38 +78,26 @@ exports.getEditCoursePage = async (req, res) => {
             req.flash('error_msg', 'Ders bulunamadı.');
             return res.redirect('/admin/dashboard');
         }
-        res.render('admin/edit-course', {
-            title: 'Dersi Düzenle',
-            course: course
-        });
+        res.render('admin/edit-course', { title: 'Dersi Düzenle', course: course });
     } catch (error) {
-        console.error(error);
-        req.flash('error_msg', 'Hata oluştu.');
         res.redirect('/admin/dashboard');
     }
 };
 
-// --- YENİ: Ders Güncelleme İşlemi ---
 exports.updateCourse = async (req, res) => {
     const { courseId, title, description, isPublic } = req.body;
     try {
         const course = await db.Course.findByPk(courseId);
-        if (!course) {
-            req.flash('error_msg', 'Ders bulunamadı.');
-            return res.redirect('/admin/dashboard');
-        }
+        if (!course) return res.redirect('/admin/dashboard');
 
-        // Bilgileri güncelle
         course.title = title;
         course.description = description;
-        course.isPublic = isPublic === 'true'; // Boolean çevrimi
+        course.isPublic = isPublic === 'true';
         await course.save();
 
-        req.flash('success_msg', 'Ders başarıyla güncellendi.');
+        req.flash('success_msg', 'Güncellendi.');
         res.redirect('/admin/dashboard');
     } catch (error) {
-        console.error(error);
-        req.flash('error_msg', 'Güncelleme sırasında hata oluştu.');
         res.redirect('/admin/dashboard');
     }
 };
