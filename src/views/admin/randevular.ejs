@@ -8,17 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/css/style.css?v=<%= Date.now() %>">
     <style>
-        /* Randevu sayfasına özel stiller */
-        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; color: white; }
-        .bg-pending { background-color: #ffc107; color: #000; }
-        .bg-confirmed { background-color: #198754; }
-        .bg-rejected { background-color: #6c757d; }
-        .bg-busy { background-color: #dc3545; }
-        .btn-approve { background-color: #198754; color: white; margin-right: 5px; }
-        .btn-reject { background-color: #ffc107; color: black; margin-right: 5px; }
-        .btn-delete { background-color: #dc3545; color: white; }
-        .section-header-confirmed { border-left: 5px solid #198754; padding-left: 10px; color: #198754; margin-bottom: 15px; }
-        .section-header-pending { border-left: 5px solid #ffc107; padding-left: 10px; color: #d39e00; margin-bottom: 15px; }
+        .meeting-link-input { border: 1px solid #ced4da; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; width: 200px; }
     </style>
 </head>
 <body>
@@ -36,155 +26,175 @@
                 <%- include('../partials/messages') %>
 
                 <div class="row">
-                    <div class="col-md-4 order-md-2 mb-4">
+                    <div class="col-lg-4 mb-4">
                         <div class="admin-card">
                             <div class="admin-card-header bg-light">
-                                <h3><i class="bi bi-calendar-x text-danger"></i> Saat Bloke Et</h3>
+                                <h3><i class="bi bi-clock-history text-primary"></i> Haftalık Müsaitlik</h3>
                             </div>
                             <div class="card-body p-4">
-                                <form action="/admin/randevular/create" method="POST">
+                                <p class="text-muted small">Öğrencilerin randevu alabileceği haftalık saat aralıklarını belirleyin.</p>
+                                
+                                <form action="/admin/availability/create" method="POST">
                                     <div class="mb-3">
-                                        <label class="form-label fw-bold">Tarih</label>
-                                        <input type="date" class="form-control" name="date" required>
+                                        <label class="fw-bold form-label">Gün</label>
+                                        <select class="form-select" name="dayOfWeek" required>
+                                            <option value="1">Pazartesi</option>
+                                            <option value="2">Salı</option>
+                                            <option value="3">Çarşamba</option>
+                                            <option value="4">Perşembe</option>
+                                            <option value="5">Cuma</option>
+                                            <option value="6">Cumartesi</option>
+                                            <option value="0">Pazar</option>
+                                        </select>
                                     </div>
                                     <div class="row">
                                         <div class="col-6 mb-3">
-                                            <label class="form-label fw-bold">Başlangıç</label>
+                                            <label class="fw-bold form-label">Başlangıç</label>
                                             <input type="time" class="form-control" name="startTime" required>
                                         </div>
                                         <div class="col-6 mb-3">
-                                            <label class="form-label fw-bold">Bitiş</label>
+                                            <label class="fw-bold form-label">Bitiş</label>
                                             <input type="time" class="form-control" name="endTime" required>
                                         </div>
                                     </div>
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-danger">Meşgul Olarak İşaretle</button>
-                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Aralık Ekle</button>
                                 </form>
-                            </div>
-                        </div>
-                        
-                        <div class="admin-card mt-3">
-                            <div class="admin-card-header">
-                                <h3>Bloklarınız</h3>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                <% if (busySlots && busySlots.length > 0) { %>
-                                    <% busySlots.forEach(slot => { %>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <span>
-                                                <strong><%= new Date(slot.startTime).toLocaleDateString('tr-TR') %></strong><br>
-                                                <%= new Date(slot.startTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %> - 
-                                                <%= new Date(slot.endTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %>
-                                            </span>
-                                            <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Kaldırmak istiyor musunuz?');" class="m-0">
-                                                <input type="hidden" name="appointmentId" value="<%= slot.id %>">
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-trash"></i></button>
+
+                                <hr>
+                                
+                                <h6 class="fw-bold mt-4">Mevcut Programınız</h6>
+                                <ul class="list-group list-group-flush small">
+                                    <% 
+                                    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+                                    if (availabilities && availabilities.length > 0) { 
+                                        availabilities.forEach(av => { 
+                                    %>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <div>
+                                                <span class="badge bg-secondary me-2"><%= days[av.dayOfWeek] %></span>
+                                                <%= av.startTime.slice(0,5) %> - <%= av.endTime.slice(0,5) %>
+                                            </div>
+                                            <form action="/admin/availability/delete" method="POST" class="m-0">
+                                                <input type="hidden" name="id" value="<%= av.id %>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </li>
-                                    <% }) %>
-                                <% } else { %>
-                                    <li class="list-group-item text-muted text-center">Bloke saat yok.</li>
-                                <% } %>
-                            </ul>
+                                    <% }) } else { %>
+                                        <li class="list-group-item text-muted text-center px-0">Henüz program eklenmedi.</li>
+                                    <% } %>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="col-md-8 order-md-1">
-                        <div class="admin-card mb-4 border-success border-start border-5">
+                    <div class="col-lg-8">
+                        
+                        <div class="admin-card border-warning border-start border-5 mb-4">
                             <div class="admin-card-header">
-                                <h3 class="text-success">Onaylanan Randevular</h3>
+                                <h3 class="text-warning">Bekleyen Randevu Talepleri</h3>
                             </div>
                             <div class="card-body p-0">
-                                <% const confirmedApps = studentAppointments.filter(app => app.status === 'confirmed'); %>
-                                <% if (confirmedApps.length > 0) { %>
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Tarih</th>
-                                                <th>Öğrenci</th>
-                                                <th>Konu</th>
-                                                <th>İşlem</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% confirmedApps.forEach(app => { %>
+                                <% const pendingApps = appointments.filter(a => a.status === 'pending'); %>
+                                <% if (pendingApps.length > 0) { %>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 align-middle">
+                                            <thead class="table-light">
                                                 <tr>
-                                                    <td>
-                                                        <%= new Date(app.startTime).toLocaleDateString('tr-TR') %> <br>
-                                                        <small><%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %> - <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %></small>
-                                                    </td>
-                                                    <td><%= app.Student ? app.Student.username : '?' %></td>
-                                                    <td><%= app.studentNotes %></td>
-                                                    <td>
-                                                        <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('İptal etmek istiyor musunuz?');">
-                                                            <input type="hidden" name="appointmentId" value="<%= app.id %>">
-                                                            <button class="btn btn-sm btn-delete">İptal</button>
-                                                        </form>
-                                                    </td>
+                                                    <th>Tarih/Saat</th>
+                                                    <th>Öğrenci</th>
+                                                    <th>Not</th>
+                                                    <th style="min-width: 280px;">İşlem</th>
                                                 </tr>
-                                            <% }) %>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <% pendingApps.forEach(app => { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= new Date(app.startTime).toLocaleDateString('tr-TR') %> <br>
+                                                            <small class="text-muted">
+                                                                <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %> - 
+                                                                <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %>
+                                                            </small>
+                                                        </td>
+                                                        <td><%= app.Student ? app.Student.username : '?' %></td>
+                                                        <td><small><%= app.studentNotes %></small></td>
+                                                        <td>
+                                                            <form action="/admin/randevular/confirm" method="POST" class="d-flex gap-2 align-items-center mb-2">
+                                                                <input type="hidden" name="appointmentId" value="<%= app.id %>">
+                                                                <input type="text" name="meetingLink" class="meeting-link-input" placeholder="Toplantı Linki (Zoom/Meet)" required>
+                                                                <button type="submit" class="btn btn-success btn-sm text-nowrap"><i class="bi bi-check-lg"></i> Onayla</button>
+                                                            </form>
+                                                            
+                                                            <form action="/admin/randevular/reject" method="POST" class="d-inline">
+                                                                <input type="hidden" name="appointmentId" value="<%= app.id %>">
+                                                                <button class="btn btn-warning btn-sm text-white"><i class="bi bi-x-lg"></i> Reddet</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 <% } else { %>
-                                    <p class="p-3 text-center text-muted">Onaylanmış randevu yok.</p>
+                                    <p class="text-center text-muted p-4 mb-0">Bekleyen talep yok.</p>
                                 <% } %>
                             </div>
                         </div>
 
-                        <div class="admin-card border-warning border-start border-5">
+                        <div class="admin-card border-success border-start border-5">
                             <div class="admin-card-header">
-                                <h3 class="text-warning">Bekleyen Talepler</h3>
+                                <h3 class="text-success">Onaylanan / Yaklaşan Randevular</h3>
                             </div>
                             <div class="card-body p-0">
-                                <% const pendingApps = studentAppointments.filter(app => app.status === 'pending'); %>
-                                <% if (pendingApps.length > 0) { %>
-                                    <table class="table table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Tarih</th>
-                                                <th>Öğrenci</th>
-                                                <th>Mesaj</th>
-                                                <th>İşlemler</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <% pendingApps.forEach(req => { %>
+                                <% const confirmedApps = appointments.filter(a => a.status === 'confirmed'); %>
+                                <% if (confirmedApps.length > 0) { %>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0 align-middle">
+                                            <thead class="table-light">
                                                 <tr>
-                                                    <td>
-                                                        <%= new Date(req.startTime).toLocaleDateString('tr-TR') %> <br>
-                                                        <small><%= new Date(req.startTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %></small>
-                                                    </td>
-                                                    <td><%= req.Student ? req.Student.username : '?' %></td>
-                                                    <td><small><%= req.studentNotes %></small></td>
-                                                    <td>
-                                                        <div class="d-flex gap-1">
-                                                            <form action="/admin/randevular/confirm" method="POST">
-                                                                <input type="hidden" name="appointmentId" value="<%= req.id %>">
-                                                                <button class="btn btn-sm btn-approve"><i class="bi bi-check-lg"></i></button>
-                                                            </form>
-                                                            <form action="/admin/randevular/reject" method="POST">
-                                                                <input type="hidden" name="appointmentId" value="<%= req.id %>">
-                                                                <button class="btn btn-sm btn-reject"><i class="bi bi-x-lg"></i></button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
+                                                    <th>Tarih/Saat</th>
+                                                    <th>Öğrenci</th>
+                                                    <th>Link</th>
+                                                    <th>İşlem</th>
                                                 </tr>
-                                            <% }) %>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <% confirmedApps.forEach(app => { %>
+                                                    <tr>
+                                                        <td>
+                                                            <%= new Date(app.startTime).toLocaleDateString('tr-TR') %> <br>
+                                                            <small class="text-muted">
+                                                                <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) %>
+                                                            </small>
+                                                        </td>
+                                                        <td><%= app.Student ? app.Student.username : '?' %></td>
+                                                        <td>
+                                                            <% if (app.meetingLink) { %>
+                                                                <a href="<%= app.meetingLink %>" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-camera-video"></i> Git</a>
+                                                            <% } else { %> - <% } %>
+                                                        </td>
+                                                        <td>
+                                                            <form action="/admin/randevular/delete" method="POST" onsubmit="return confirm('Bu randevuyu iptal etmek istediğinize emin misiniz?');">
+                                                                <input type="hidden" name="appointmentId" value="<%= app.id %>">
+                                                                <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> İptal</button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 <% } else { %>
-                                    <p class="p-3 text-center text-muted">Bekleyen talep yok.</p>
+                                    <p class="text-center text-muted p-4 mb-0">Gelecek randevu yok.</p>
                                 <% } %>
                             </div>
                         </div>
+
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

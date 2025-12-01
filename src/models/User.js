@@ -12,7 +12,6 @@ const User = sequelize.define('User', {
         allowNull: false,
         unique: true
     },
-    // --- İŞTE EKSİK OLAN KISIMLAR ---
     email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -25,7 +24,6 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    // --------------------------------
     password: {
         type: DataTypes.STRING,
         allowNull: false
@@ -34,7 +32,27 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: 'user'
+    },
+    // Şifre Sıfırlama Alanları (Daha önce eklemiştik)
+    resetPasswordToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    resetPasswordExpires: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
+    // --- YENİ EKLENEN: E-POSTA DOĞRULAMA ---
+    isVerified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+    },
+    emailVerificationToken: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
+    // ---------------------------------------
 }, {
     tableName: 'users'
 });

@@ -5,17 +5,16 @@ const { isAuth, isAdmin } = require('../middlewares/authMiddleware');
 
 router.use(isAuth, isAdmin);
 
-// GET /admin/randevular
+// GET Page
 router.get('/randevular', appointmentController.getAppointmentsPage);
 
-// POST /admin/randevular/create (Meşgul Ekle)
-router.post('/randevular/create', appointmentController.createBusySlot);
+// Müsaitlik Yönetimi (Availability)
+router.post('/availability/create', appointmentController.addAvailability);
+router.post('/availability/delete', appointmentController.deleteAvailability);
 
-// POST /admin/randevular/delete (Sil)
-router.post('/randevular/delete', appointmentController.deleteAppointment);
-
-// --- YENİ ROTALAR (Talepler İçin) ---
+// Talep Yönetimi
 router.post('/randevular/confirm', appointmentController.confirmAppointment);
 router.post('/randevular/reject', appointmentController.rejectAppointment);
+router.post('/randevular/delete', appointmentController.deleteAppointment);
 
 module.exports = router;

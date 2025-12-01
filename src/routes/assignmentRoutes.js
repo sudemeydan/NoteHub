@@ -13,9 +13,12 @@ router.get('/assignments', assignmentController.getAssignmentsPage);
 // POST /admin/assignments/create -> Yeni ödev oluştur (dosya yükleme dahil)
 router.post('/assignments/create', uploadAssignmentFile, assignmentController.createAssignment);
 
-// --- YENİ ROTA: Teslimleri Gösterme ---
 // GET /admin/assignments/:id/submissions -> Bir ödeve ait teslimleri listeler
 router.get('/assignments/:id/submissions', assignmentController.getAssignmentSubmissionsPage);
+
+// --- YENİ ROTA: Puanlama ---
+// POST /admin/assignments/grade -> Teslime puan verir
+router.post('/assignments/grade', assignmentController.gradeSubmission);
 // --- ---
 
 module.exports = router;

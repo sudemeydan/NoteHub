@@ -2,7 +2,7 @@ const db = require('../models');
 const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
 
-// GET / - Ana sayfa (ESKİ HALİ: Dersleri gönderir)
+// GET / - Ana sayfa
 const getHomePage = async (req, res) => {
     try {
         const [courses, latestNotes, popularNotes] = await Promise.all([
@@ -16,11 +16,6 @@ const getHomePage = async (req, res) => {
         res.status(500).send('Sayfa yüklenirken bir hata oluştu.');
     }
 };
-
-// ... (AŞAĞIDAKİ DİĞER FONKSİYONLARINIZ AYNI KALABİLİR) ...
-// getCoursePage, getNotePage, getMyNotesPage, getAssignmentsListPage, 
-// getSingleAssignmentPage, postSubmission, search, getCalendarPage, 
-// createAppointmentRequest, getStudentAppointmentsPage
 
 const getCoursePage = async (req, res) => {
     try {
@@ -61,13 +56,25 @@ const getMyNotesPage = async (req, res) => {
     res.render('pages/my-notes', { title: 'Notlarım' });
 };
 
+// ÖDEV LİSTESİ SAYFASI
 const getAssignmentsListPage = async (req, res) => {
     try {
         const userId = req.session.user.id;
-        const all = await db.Assignment.findAll({ order: [['dueDate', 'DESC']], include: [{ model: db.User, as: 'Teacher', attributes: ['username'] }] });
-        const subs = await db.Submission.findAll({ where: { userId }, attributes: ['assignmentId'] });
-        const subIds = new Set(subs.map(s => s.assignmentId));
-        const assignments = all.map(a => ({ ...a.get({ plain: true }), isSubmitted: subIds.has(a.id) }));
+        const all = await db.Assignment.findAll({ 
+            order: [['dueDate', 'DESC']], 
+            include: [{ model: db.User, as: 'Teacher', attributes: ['username'] }] 
+        });
+        
+        const subs = await db.Submission.findAll({ where: { userId }, attributes: ['assignmentId', 'score'] });
+        const subMap = {};
+        subs.forEach(s => { subMap[s.assignmentId] = s; });
+
+        const assignments = all.map(a => ({ 
+            ...a.get({ plain: true }), 
+            isSubmitted: !!subMap[a.id], 
+            score: subMap[a.id] ? subMap[a.id].score : null 
+        }));
+        
         res.render('pages/assignments-list', { title: 'Ödevlerim', assignments });
     } catch (e) { res.redirect('/'); }
 };
@@ -76,23 +83,46 @@ const getSingleAssignmentPage = async (req, res) => {
     try {
         const assignment = await db.Assignment.findByPk(req.params.id, { include: [{ model: db.User, as: 'Teacher', attributes: ['username'] }] });
         if (!assignment) return res.redirect('/odevlerim');
+        
         const submission = await db.Submission.findOne({ where: { assignmentId: req.params.id, userId: req.session.user.id } });
+        
         res.render('pages/assignment-detail', { title: assignment.title, assignment, submission });
     } catch (e) { res.redirect('/odevlerim'); }
 };
 
+// ÖDEV TESLİMİ
 const postSubmission = async (req, res) => {
     try {
-        const { assignmentId, textSubmission } = req.body;
+        const { assignmentId, textSubmission, studentName } = req.body;
         let filePath = req.file ? `/uploads/submissions/${req.file.filename}` : null;
-        if (!textSubmission && !filePath) { req.flash('error_msg', 'Boş gönderilemez.'); return res.redirect(`/odevler/${assignmentId}`); }
+        
+        if (!studentName || studentName.trim() === '') {
+            req.flash('error_msg', 'Lütfen adınızı ve soyadınızı giriniz. Ödev teslimi için zorunludur.');
+            return res.redirect(`/odevler/${assignmentId}`);
+        }
+
+        if (!textSubmission && !filePath) { 
+            req.flash('error_msg', 'Boş gönderilemez. Lütfen dosya yükleyin veya metin yazın.'); 
+            return res.redirect(`/odevler/${assignmentId}`); 
+        }
         
         const exists = await db.Submission.findOne({ where: { assignmentId, userId: req.session.user.id } });
-        if (exists) { req.flash('error_msg', 'Zaten teslim ettiniz.'); return res.redirect(`/odevler/${assignmentId}`); }
+        if (exists) { 
+            req.flash('error_msg', 'Zaten teslim ettiniz.'); 
+            return res.redirect(`/odevler/${assignmentId}`); 
+        }
 
-        await db.Submission.create({ assignmentId, userId: req.session.user.id, textSubmission, filePath });
-        req.flash('success_msg', 'Teslim edildi.'); res.redirect(`/odevler/${assignmentId}`);
-    } catch (e) { res.redirect(`/odevler/${req.body.assignmentId}`); }
+        await db.Submission.create({ 
+            assignmentId, userId: req.session.user.id, textSubmission, filePath, studentName: studentName.trim()
+        });
+        
+        req.flash('success_msg', 'Ödeviniz başarıyla teslim edildi.'); 
+        res.redirect(`/odevler/${assignmentId}`);
+    } catch (e) { 
+        console.error(e);
+        req.flash('error_msg', 'Bir hata oluştu.');
+        res.redirect(`/odevler/${req.body.assignmentId}`); 
+    }
 };
 
 const search = async (req, res) => {
@@ -105,54 +135,102 @@ const search = async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Hata' }); }
 };
 
+// --- GÜNCELLENEN KISIM: RANDEVU SİSTEMİ (GET) ---
+// Eski 'busySlots' yerine artık 'availabilities' ve 'appointments' gönderiyoruz.
 const getCalendarPage = async (req, res) => {
     try {
         const teacher = await db.User.findOne({ where: { role: 'admin' } });
         if (!teacher) return res.redirect('/');
-        const busySlots = await db.Appointment.findAll({
-             where: { teacherId: teacher.id, status: 'busy' },
-             order: [['startTime', 'ASC']] 
+
+        // 1. Hocanın Haftalık Müsaitlik Programı (Availability Tablosundan)
+        const availabilities = await db.Availability.findAll({
+            where: { teacherId: teacher.id },
+            order: [['dayOfWeek', 'ASC'], ['startTime', 'ASC']]
         });
-        res.render('pages/calendar', { title: 'Randevu Al', teacherId: teacher.id, busySlots });
-    } catch (e) { res.redirect('/'); }
+
+        // 2. Gelecekteki Dolu Randevular (Onaylı veya Bekleyen)
+        const appointments = await db.Appointment.findAll({
+            where: {
+                teacherId: teacher.id,
+                startTime: { [Op.gte]: new Date() }, // Sadece gelecektekiler
+                status: { [Op.in]: ['pending', 'confirmed'] }
+            }
+        });
+
+        res.render('pages/calendar', {
+            title: 'Randevu Al',
+            teacherId: teacher.id,
+            availabilities: availabilities, // Obje olarak gönderiyoruz
+            existingAppointments: appointments // Obje olarak gönderiyoruz
+        });
+    } catch (e) { 
+        console.error(e);
+        res.redirect('/'); 
+    }
 };
 
+// --- GÜNCELLENEN KISIM: RANDEVU TALEP ETME (POST) ---
 const createAppointmentRequest = async (req, res) => {
     try {
         const { teacherId, appointmentDate, appointmentTime, studentNotes } = req.body;
+        
+        // Slot Hesapla: Seçilen saatten 30 dk sonrası
         const start = new Date(`${appointmentDate}T${appointmentTime}`);
-        const end = new Date(start.getTime() + 30 * 60000);
-        
+        const end = new Date(start.getTime() + 30 * 60000); // +30 dk
+
+        // Çakışma Kontrolü
         const conflict = await db.Appointment.findOne({
-            where: { teacherId, status: { [Op.in]: ['busy', 'confirmed', 'pending'] }, [Op.or]: [{ startTime: { [Op.lt]: end }, endTime: { [Op.gt]: start } }] }
+            where: {
+                teacherId,
+                status: { [Op.ne]: 'rejected' }, // Reddedilenler engel olmaz
+                [Op.or]: [
+                    { startTime: { [Op.lt]: end }, endTime: { [Op.gt]: start } }
+                ]
+            }
         });
-        if (conflict) { req.flash('error_msg', 'Bu saat dolu.'); return res.redirect('/randevu-al'); }
 
-        await db.Appointment.create({ startTime: start, endTime: end, status: 'pending', studentNotes, teacherId, studentId: req.session.user.id });
-        
-        // --- MAIL GÖNDERME ---
-        const teacher = await db.User.findByPk(teacherId);
-        const student = req.session.user;
-
-        if (teacher && teacher.email) {
-             const transporter = nodemailer.createTransport({
-                service: process.env.EMAIL_SERVICE,
-                auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-            });
-            const mailOptions = {
-                from: `"NoteHub" <${process.env.EMAIL_USER}>`,
-                to: teacher.email,
-                replyTo: student.email,
-                subject: `📅 Yeni Randevu Talebi: ${student.username}`,
-                html: `<p>${student.username} (${student.email}) sizden <b>${appointmentDate} ${appointmentTime}</b> için randevu talep etti.</p><p>Not: ${studentNotes}</p>`
-            };
-            transporter.sendMail(mailOptions).catch(err => console.error("Mail Hatası:", err));
+        if (conflict) {
+            req.flash('error_msg', 'Bu saat dilimi maalesef dolu. Lütfen sayfayı yenileyip tekrar deneyin.');
+            return res.redirect('/randevu-al');
         }
-        // ---------------------
 
-        req.flash('success_msg', 'Talep iletildi.'); res.redirect('/randevularim');
+        await db.Appointment.create({
+            startTime: start,
+            endTime: end,
+            status: 'pending',
+            studentNotes,
+            teacherId,
+            studentId: req.session.user.id
+        });
+        
+        // Mail Gönderme (Opsiyonel, hata verirse devam etsin)
+        try {
+            const teacher = await db.User.findByPk(teacherId);
+            const student = req.session.user;
+            if (teacher && teacher.email && process.env.EMAIL_USER) {
+                const transporter = nodemailer.createTransport({
+                    service: process.env.EMAIL_SERVICE,
+                    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+                });
+                const mailOptions = {
+                    from: `"NoteHub" <${process.env.EMAIL_USER}>`,
+                    to: teacher.email,
+                    replyTo: student.email,
+                    subject: `📅 Yeni Randevu Talebi: ${student.username}`,
+                    html: `<p>${student.username} (${student.email}) sizden <b>${appointmentDate} ${appointmentTime}</b> için randevu talep etti.</p><p>Not: ${studentNotes}</p>`
+                };
+                transporter.sendMail(mailOptions).catch(err => console.error("Mail Hatası:", err));
+            }
+        } catch (mailError) {
+            console.error("Mail gönderilemedi:", mailError);
+        }
+
+        req.flash('success_msg', 'Randevu talebiniz iletildi. Onay bekleniyor.'); 
+        res.redirect('/randevularim');
+
     } catch (e) { 
         console.error(e);
+        req.flash('error_msg', 'Hata oluştu.');
         res.redirect('/randevu-al'); 
     }
 };
@@ -170,7 +248,6 @@ const getStudentAppointmentsPage = async (req, res) => {
     }
 };
 
-// Hepsini tek seferde dışa aktar
 module.exports = {
     getHomePage,
     getCoursePage,

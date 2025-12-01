@@ -15,18 +15,20 @@ const Appointment = sequelize.define('Appointment', {
         type: DataTypes.DATE,
         allowNull: false
     },
-    // --- GÜNCELLENEN STATUS ---
-    // 'available' kaldırıldı, 'busy' eklendi.
     status: {
         type: DataTypes.ENUM('busy', 'pending', 'confirmed', 'rejected'),
         allowNull: false
-        // Varsayılan değer (defaultValue) kaldırıldı. Durum net olarak belirtilmeli.
     },
-    // --- ---
     studentNotes: {
         type: DataTypes.TEXT, // Öğrencinin randevu isterken yazdığı not
         allowNull: true
+    },
+    // --- YENİ EKLENEN ALAN ---
+    meetingLink: {
+        type: DataTypes.STRING, // Zoom/Meet linki
+        allowNull: true
     }
+    // -------------------------
     // teacherId ve studentId ilişkilerle eklenecek
 }, {
     tableName: 'appointments'

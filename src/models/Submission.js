@@ -14,7 +14,17 @@ const Submission = sequelize.define('Submission', {
     filePath: {
         type: DataTypes.STRING, // Öğrencinin yüklediği PDF/ZIP/Resim dosyasının yolu
         allowNull: true
+    },
+    // --- YENİ EKLENEN SÜTUNLAR ---
+    score: {
+        type: DataTypes.INTEGER, // Adminin verdiği puan
+        allowNull: true
+    },
+    studentName: {
+        type: DataTypes.STRING, // Öğrencinin teslim ederken girdiği Ad Soyad
+        allowNull: true
     }
+    // -----------------------------
     // Hangi ödeve ait olduğu (assignmentId) ve hangi öğrenciye ait olduğu (userId)
     // ilişkilerde (relationships) otomatik olarak eklenecek.
 }, {

@@ -2,78 +2,254 @@
 
 <div class="container mt-5">
     <div class="row gy-4">
-        <div class="col-lg-6">
-            <div class="page-title mb-4">
-                <h1 class="display-5 fw-bold text-dark"><%= title %></h1>
-                <p class="lead text-muted">Lütfen sağdaki listeden hocanın meşgul saatlerini kontrol edin ve uygun bir zaman dilimi için talep gönderin.</p>
-            </div>
-
-            <%- include('../partials/messages') %>
-
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h5 class="card-title mb-3">Yeni Randevu Talebi</h5>
-                    <form action="/randevu-talep" method="POST">
-                        <input type="hidden" name="teacherId" value="<%= teacherId %>">
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="appointmentDate" class="form-label fw-bold">Tarih Seçin</label>
-                                <input type="date" class="form-control" id="appointmentDate" name="appointmentDate" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="appointmentTime" class="form-label fw-bold">Saat Seçin (Başlangıç)</label>
-                                <input type="time" class="form-control" id="appointmentTime" name="appointmentTime" required>
-                                <div class="form-text">Randevular 30 dakika sürecektir.</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="studentNotes" class="form-label fw-bold">Randevu Konusu / Mesajınız</label>
-                            <textarea class="form-control" id="studentNotes" name="studentNotes" rows="4" placeholder="Hocanızla ne hakkında görüşmek istediğinizi kısaca belirtin..." required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary btn-lg w-100">
-                            <i class="bi bi-send-check-fill me-2"></i>Randevu Talebi Gönder
-                        </button>
-                    </form>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Nasıl Randevu Alınır?</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">Aşağıdaki takvimden uygun bir gün seçin. Seçtiğiniz güne ait boş saatler sağ tarafta listelenecektir.</p>
+                    <hr>
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-calendar-week me-2"></i>Hocanın Haftalık Programı</h6>
+                    
+                    <% if (availabilities && availabilities.length > 0) { %>
+                        <ul class="list-group list-group-flush small">
+                            <% 
+                            const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+                            availabilities.forEach(av => { 
+                            %>
+                                <li class="list-group-item d-flex justify-content-between px-0">
+                                    <span class="fw-bold"><%= days[av.dayOfWeek] %></span>
+                                    <span><%= av.startTime.slice(0,5) %> - <%= av.endTime.slice(0,5) %></span>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        <div class="alert alert-warning small">Hoca henüz haftalık bir program belirlememiş.</div>
+                    <% } %>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6">
-            <div class="card shadow-sm" style="max-height: 600px; overflow-y: auto;">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-x-fill text-danger me-2"></i>Hocanın Dolu Saatleri</h5>
-                </div>
-                <div class="list-group list-group-flush">
-                    <% if (busySlots && busySlots.length > 0) { %>
-                        <% busySlots.forEach(slot => { %>
-                            <div class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                <div>
-                                    <strong class="d-block"><%= new Date(slot.startTime).toLocaleDateString('tr-TR', {day: '2-digit', month: 'long', year: 'numeric', weekday: 'long'}) %></strong>
-                                    <span class="text-danger">
-                                        <%= new Date(slot.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
-                                        -
-                                        <%= new Date(slot.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
-                                    </span>
-                                </div>
-                                <% if (slot.status === 'busy') { %>
-                                    <span class="badge bg-danger rounded-pill">Meşgul (Hoca)</span>
-                                <% } else { %>
-                                    <span class="badge bg-secondary rounded-pill">Dolu (Randevu)</span>
-                                <% } %>
+        <div class="col-lg-8">
+            <h1 class="display-6 fw-bold mb-4">Randevu Oluştur</h1>
+            <%- include('../partials/messages') %>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="mb-4">
+                        <label for="datePicker" class="form-label fw-bold fs-5">Bir Tarih Seçin:</label>
+                        <input type="date" id="datePicker" class="form-control form-control-lg" min="<%= new Date().toISOString().split('T')[0] %>">
+                        <div class="form-text">Geçmiş tarihleri seçemezsiniz.</div>
+                    </div>
+
+                    <div id="slotsContainer" class="d-none">
+                        <h5 class="mb-3 border-bottom pb-2">Müsait Saatler</h5>
+                        <div id="slotsList" class="d-flex flex-wrap gap-2">
                             </div>
-                        <% }) %>
-                    <% } else { %>
-                        <div class="list-group-item text-muted p-3 text-center">
-                            Hocanın takviminde kayıtlı meşgul bir saat bulunmuyor.
+                        <div id="noSlotsMsg" class="alert alert-secondary d-none mt-3">
+                            <i class="bi bi-exclamation-circle me-2"></i>Seçilen tarihte uygun randevu saati bulunmuyor.
                         </div>
-                    <% } %>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/randevu-talep" method="POST">
+                <input type="hidden" name="teacherId" value="<%= teacherId %>">
+                <input type="hidden" name="appointmentDate" id="modalDate">
+                <input type="hidden" name="appointmentTime" id="modalTime">
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title">Randevu Talebini Onayla</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <h3 class="text-primary" id="displayTime"></h3>
+                        <p class="text-muted" id="displayDate"></p>
+                    </div>
+                    
+                    <div id="urgencyWarning" class="alert alert-warning d-none">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                        <strong>Dikkat:</strong> Randevu saati çok yakın (1 saatten az). Hocanız bu talebi zamanında göremeyebilir.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Notunuz (İsteğe bağlı)</label>
+                        <textarea name="studentNotes" class="form-control" rows="3" placeholder="Hocanızla ne hakkında görüşmek istediğinizi kısaca belirtin..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Talep Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script id="availabilities-data" type="application/json">
+    <%- JSON.stringify(availabilities || []) %>
+</script>
+<script id="appointments-data" type="application/json">
+    <%- JSON.stringify(existingAppointments || []) %>
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Verileri güvenli şekilde al
+        let availabilities = [];
+        let existingAppointments = [];
+        
+        try {
+            availabilities = JSON.parse(document.getElementById('availabilities-data').textContent);
+            existingAppointments = JSON.parse(document.getElementById('appointments-data').textContent);
+            console.log("Veriler yüklendi:", availabilities, existingAppointments);
+        } catch (err) {
+            console.error("JSON Parse Hatası:", err);
+        }
+
+        const datePicker = document.getElementById('datePicker');
+        const slotsContainer = document.getElementById('slotsContainer');
+        const slotsList = document.getElementById('slotsList');
+        const noSlotsMsg = document.getElementById('noSlotsMsg');
+        
+        // Modal elementleri
+        const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        const modalDateInput = document.getElementById('modalDate');
+        const modalTimeInput = document.getElementById('modalTime');
+        const displayDate = document.getElementById('displayDate');
+        const displayTime = document.getElementById('displayTime');
+        const urgencyWarning = document.getElementById('urgencyWarning');
+
+        datePicker.addEventListener('change', function() {
+            const selectedDateStr = this.value; // "YYYY-MM-DD" formatında gelir
+            if (!selectedDateStr) return;
+
+            // --- GÜN HESAPLAMA DÜZELTMESİ ---
+            // new Date("YYYY-MM-DD") kullanmak yerine manuel parse ediyoruz.
+            // Bu sayede timezone farkı yüzünden gün kaymasını engelliyoruz.
+            const parts = selectedDateStr.split('-');
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Ay 0-11 arasıdır
+            const day = parseInt(parts[2]);
+            
+            const selectedDate = new Date(year, month, day);
+            const dayOfWeek = selectedDate.getDay(); // 0: Pazar, 1: Pzt...
+
+            console.log("Seçilen Tarih:", selectedDateStr, "Gün Index:", dayOfWeek);
+
+            // Arayüzü temizle
+            slotsContainer.classList.remove('d-none');
+            slotsList.innerHTML = '';
+            noSlotsMsg.classList.add('d-none');
+
+            // 1. O güne ait müsaitlik kurallarını bul
+            const dayRules = availabilities.filter(av => av.dayOfWeek === dayOfWeek);
+
+            if (dayRules.length === 0) {
+                console.log("Bugün için kural bulunamadı.");
+                noSlotsMsg.classList.remove('d-none');
+                noSlotsMsg.textContent = "Seçilen gün için hocanın müsaitlik kaydı yok.";
+                return;
+            }
+
+            let hasSlots = false;
+
+            // 2. Her kural için 30 dakikalık slotlar üret
+            dayRules.forEach(rule => {
+                // Saatleri "HH:MM:SS" formatından alıp tarih objesine ekle
+                // rule.startTime örn: "13:00:00"
+                let current = new Date(year, month, day, 
+                    parseInt(rule.startTime.split(':')[0]), 
+                    parseInt(rule.startTime.split(':')[1]), 0);
+                
+                const end = new Date(year, month, day, 
+                    parseInt(rule.endTime.split(':')[0]), 
+                    parseInt(rule.endTime.split(':')[1]), 0);
+
+                while (current < end) {
+                    const hours = current.getHours().toString().padStart(2, '0');
+                    const minutes = current.getMinutes().toString().padStart(2, '0');
+                    const timeString = `${hours}:${minutes}`; // "13:00"
+                    
+                    const slotDateTime = new Date(current);
+
+                    // KONTROL 1: Geçmiş zaman mı?
+                    if (slotDateTime < new Date()) {
+                        // Eğer slot geçmişte kaldıysa atla
+                        current.setMinutes(current.getMinutes() + 30);
+                        continue;
+                    }
+
+                    // KONTROL 2: Çakışma var mı?
+                    const isTaken = existingAppointments.some(app => {
+                        const appDate = new Date(app.startTime);
+                        // Yıl, Ay, Gün, Saat, Dakika eşit mi?
+                        return appDate.getFullYear() === current.getFullYear() &&
+                               appDate.getMonth() === current.getMonth() &&
+                               appDate.getDate() === current.getDate() &&
+                               appDate.getHours() === current.getHours() &&
+                               appDate.getMinutes() === current.getMinutes();
+                    });
+
+                    if (!isTaken) {
+                        hasSlots = true;
+                        createSlotButton(timeString, selectedDateStr);
+                    }
+
+                    // 30 dk ileri sar
+                    current.setMinutes(current.getMinutes() + 30);
+                }
+            });
+
+            if (!hasSlots) {
+                noSlotsMsg.classList.remove('d-none');
+                noSlotsMsg.textContent = "Bu tarihteki tüm saatler dolmuş veya geçmiş zamanlı.";
+            }
+        });
+
+        function createSlotButton(time, dateStr) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-outline-success px-4 py-2 m-1';
+            btn.innerHTML = `<i class="bi bi-clock me-1"></i> ${time}`;
+            btn.type = 'button';
+            
+            btn.onclick = () => {
+                modalDateInput.value = dateStr;
+                modalTimeInput.value = time;
+                
+                // Tarihi Türkçe formatta göster
+                const parts = dateStr.split('-');
+                const d = new Date(parts[0], parts[1]-1, parts[2]);
+                displayDate.textContent = d.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                displayTime.textContent = time;
+
+                // Son dakika uyarısı
+                const now = new Date();
+                const slotTime = new Date(parts[0], parts[1]-1, parts[2], time.split(':')[0], time.split(':')[1]);
+                const diffMs = slotTime - now;
+                const diffMins = Math.floor(diffMs / 60000);
+
+                if (diffMins < 60) {
+                    urgencyWarning.classList.remove('d-none');
+                } else {
+                    urgencyWarning.classList.add('d-none');
+                }
+
+                confirmModal.show();
+            };
+
+            slotsList.appendChild(btn);
+        }
+    });
+</script>
 
 <%- include('../partials/footer') %>

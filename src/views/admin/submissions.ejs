@@ -5,18 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <style>
-        body { font-family: sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 1rem; }
-        .back-link { text-decoration: none; background-color: #6c757d; color: white; padding: 10px 15px; border-radius: 5px; font-size: 14px; }
-        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid transparent; }
-        .alert-success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-        .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .content-section { margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: left; }
-        th { background-color: #f1f3f5; }
-        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; white-space: pre-wrap; }
+        body { font-family: sans-serif;
+background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; /* Genişliği biraz artırdık tablo sığsın diye */
+margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;
+padding-bottom: 1rem; margin-bottom: 1rem; }
+        .back-link { text-decoration: none; background-color: #6c757d; color: white;
+padding: 10px 15px; border-radius: 5px; font-size: 14px; }
+        .alert { padding: 1rem;
+margin-bottom: 1rem; border-radius: 4px; border: 1px solid transparent; }
+        .alert-success { background-color: #d4edda;
+color: #155724; border-color: #c3e6cb; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb;
+}
+        .content-section { margin-top: 2rem;
+}
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem;
+}
+        th, td { padding: 12px; border: 1px solid #eee; text-align: left; vertical-align: middle;
+}
+        th { background-color: #f1f3f5;
+}
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; white-space: pre-wrap; margin: 0;
+}
+        /* Yeni stiller */
+        .grade-form { display: flex; gap: 5px; }
+        .grade-input { width: 70px; padding: 5px; border: 1px solid #ccc; border-radius: 3px; }
+        .grade-btn { padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -30,25 +47,34 @@
 
         <div class="content-section">
             <h3>Gelen Teslimler</h3>
+           
             <table>
                 <thead>
                     <tr>
                         <th>Öğrenci (Kullanıcı Adı)</th>
-                        <th>Teslim Tarihi</th>
+                        <th>Adı Soyadı</th> <th>Teslim Tarihi</th>
                         <th>Teslim Edilen Dosya</th>
                         <th>Teslim Edilen Metin</th>
-                    </tr>
+                        <th>Puan</th> </tr>
                 </thead>
                 <tbody>
+        
                     <% if (submissions && submissions.length > 0) { %>
                         <% submissions.forEach(sub => { %>
                             <tr>
+                        
                                 <td>
-                                    <%= sub.User ? sub.User.username : 'Bilinmeyen Kullanıcı' %>
+                                    <strong><%= sub.User ? sub.User.username : 'Bilinmeyen Kullanıcı' %></strong>
                                 </td>
+
+                                <td>
+                                    <%= sub.studentName ? sub.studentName : '-' %>
+                                </td>
+                 
                                 <td>
                                     <%= new Date(sub.createdAt).toLocaleString('tr-TR') %>
                                 </td>
+              
                                 <td>
                                     <% if (sub.filePath) { %>
                                         <a href="<%= sub.filePath %>" target="_blank">Dosyayı İndir/Görüntüle</a>
@@ -56,6 +82,7 @@
                                         Dosya Yok
                                     <% } %>
                                 </td>
+                                
                                 <td>
                                     <% if (sub.textSubmission) { %>
                                         <pre><%= sub.textSubmission %></pre>
@@ -63,12 +90,24 @@
                                         Metin Yok
                                     <% } %>
                                 </td>
+
+                                <td>
+                                    <form action="/admin/assignments/grade" method="POST" class="grade-form">
+                                        <input type="hidden" name="submissionId" value="<%= sub.id %>">
+                                        <input type="hidden" name="assignmentId" value="<%= sub.assignmentId %>">
+                                        <input type="number" name="score" class="grade-input" value="<%= sub.score %>" placeholder="0-100" min="0" max="100">
+                                        <button type="submit" class="grade-btn">Kaydet</button>
+                                    </form>
+                                </td>
+
                             </tr>
                         <% }) %>
                     <% } else { %>
+   
                         <tr>
-                            <td colspan="4" style="text-align: center;">Bu ödeve henüz hiç teslim yapılmamış.</td>
+                            <td colspan="6" style="text-align: center;">Bu ödeve henüz hiç teslim yapılmamış.</td>
                         </tr>
+                   
                     <% } %>
                 </tbody>
             </table>

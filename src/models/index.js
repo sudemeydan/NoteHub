@@ -10,6 +10,7 @@ const Reply = require('./Reply');
 const Assignment = require('./Assignment');
 const Submission = require('./Submission');
 const Appointment = require('./Appointment');
+const Availability = require('./Availability'); // YENİ
 
 // --- TÜM İLİŞKİLERİ TANIMLA ---
 
@@ -39,6 +40,10 @@ Appointment.belongsTo(User, { foreignKey: 'teacherId', as: 'Teacher' });
 User.hasMany(Appointment, { foreignKey: 'studentId', as: 'StudentAppointments' });
 Appointment.belongsTo(User, { foreignKey: 'studentId', as: 'Student' });
 
+// 5. Müsaitlik İlişkisi (YENİ)
+User.hasMany(Availability, { foreignKey: 'teacherId' });
+Availability.belongsTo(User, { foreignKey: 'teacherId' });
+
 const db = {
     sequelize,
     Sequelize,
@@ -49,7 +54,8 @@ const db = {
     Reply,
     Assignment,
     Submission,
-    Appointment
+    Appointment,
+    Availability // YENİ
 };
 
 module.exports = db;

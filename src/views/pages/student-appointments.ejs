@@ -14,19 +14,16 @@
             <h5 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Onaylanan / Yaklaşan Randevularım</h5>
         </div>
         <div class="card-body p-0">
-            <% 
-                const confirmedApps = appointments.filter(app => app.status === 'confirmed');
-            %>
+            <% const confirmedApps = appointments.filter(app => app.status === 'confirmed'); %>
             <% if (confirmedApps.length > 0) { %>
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>Hoca</th>
                                 <th>Tarih</th>
                                 <th>Saat</th>
-                                <th>Konu</th>
-                                <th>Durum</th>
+                                <th>Toplantı Linki</th> <th>Durum</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -38,7 +35,16 @@
                                         <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - 
                                         <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
                                     </td>
-                                    <td><%= app.studentNotes %></td>
+                                    
+                                    <td>
+                                        <% if (app.meetingLink) { %>
+                                            <a href="<%= app.meetingLink %>" target="_blank" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-camera-video-fill me-1"></i> Toplantıya Katıl
+                                            </a>
+                                        <% } else { %>
+                                            <span class="text-muted small">Link bekleniyor...</span>
+                                        <% } %>
+                                    </td>
                                     <td><span class="badge bg-success">Onaylandı</span></td>
                                 </tr>
                             <% }) %>
@@ -58,9 +64,7 @@
             <h5 class="mb-0 text-dark">Talep Geçmişi (Bekleyen / Reddedilen)</h5>
         </div>
         <div class="card-body p-0">
-            <% 
-                const otherApps = appointments.filter(app => app.status !== 'confirmed');
-            %>
+            <% const otherApps = appointments.filter(app => app.status !== 'confirmed'); %>
             <% if (otherApps.length > 0) { %>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -79,8 +83,7 @@
                                     <td><%= app.Teacher ? app.Teacher.username : 'Bilinmiyor' %></td>
                                     <td><%= new Date(app.startTime).toLocaleDateString('tr-TR') %></td>
                                     <td>
-                                        <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %> - 
-                                        <%= new Date(app.endTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
+                                        <%= new Date(app.startTime).toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) %>
                                     </td>
                                     <td class="text-muted small"><%= app.studentNotes %></td>
                                     <td>

@@ -1,22 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const userAuthController = require('../controllers/userAuthController');
-// Artık guestMiddleware'i de buradan alıyoruz
 const { ensureUserLoggedIn, guestMiddleware } = require('../middlewares/authMiddleware');
 
-// GET /kayit -> Kayıt sayfasını gösterir (Sadece misafirler)
+// Kayıt ve Giriş
 router.get('/kayit', guestMiddleware, userAuthController.getSignupPage);
-
-// POST /kayit -> Kayıt formunu işler (Sadece misafirler)
 router.post('/kayit', guestMiddleware, userAuthController.postSignup);
-
-// GET /giris -> Giriş sayfasını gösterir (Sadece misafirler)
 router.get('/giris', guestMiddleware, userAuthController.getLoginPage);
-
-// POST /giris -> Giriş formunu işler (Sadece misafirler)
 router.post('/giris', guestMiddleware, userAuthController.postLogin);
-
-// GET /cikis -> Çıkış işlemini yapar (Sadece giriş yapmış kullanıcılar)
 router.get('/cikis', ensureUserLoggedIn, userAuthController.getLogout);
+
+// Şifre Sıfırlama
+router.get('/sifremi-unuttum', guestMiddleware, userAuthController.getForgotPasswordPage);
+router.post('/sifremi-unuttum', guestMiddleware, userAuthController.postForgotPassword);
+router.get('/sifre-sifirla/:token', guestMiddleware, userAuthController.getResetPasswordPage);
+router.post('/sifre-sifirla/:token', guestMiddleware, userAuthController.postResetPassword);
+
+// --- YENİ EKLENEN: E-Posta Doğrulama Rotası ---
+router.get('/email-dogrula/:token', guestMiddleware, userAuthController.verifyEmail);
+// ----------------------------------------------
 
 module.exports = router;

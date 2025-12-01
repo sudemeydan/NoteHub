@@ -7,13 +7,19 @@
             <%- include('../partials/messages') %> 
             
             <form action="/giris" method="POST">
+           
                 <div class="form-floating mb-3">
                     <input type="text" class="form-control" id="loginInput" name="loginInput" placeholder="Kullanıcı Adı veya E-posta" required>
                     <label for="loginInput">Kullanıcı Adı veya E-posta</label>
                 </div>
                 <div class="form-floating mb-3">
+      
                     <input type="password" class="form-control" id="password" name="password" placeholder="Şifre" required>
                     <label for="password">Şifre</label>
+                </div>
+                
+                <div class="d-flex justify-content-end mb-3">
+                    <a href="/sifremi-unuttum" class="text-decoration-none small text-muted">Şifremi Unuttum?</a>
                 </div>
                 <div class="d-grid mt-4">
                     <button type="submit" class="btn btn-primary btn-lg py-3">Giriş Yap</button>

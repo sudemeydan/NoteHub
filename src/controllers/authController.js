@@ -23,6 +23,14 @@ exports.postLogin = async (req, res) => {
             return res.redirect('/admin/login');
         }
 
+        // --- GÜVENLİK GÜNCELLEMESİ (YENİ) ---
+        // Eğer kullanıcının rolü 'admin' değilse, giriş yapmasını engelle.
+        if (user.role !== 'admin') {
+            req.flash('error_msg', 'Bu panele giriş yetkiniz yok. Lütfen öğrenci giriş sayfasını kullanın.');
+            return res.redirect('/admin/login');
+        }
+        // ------------------------------------
+
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (isMatch) {
@@ -59,8 +67,6 @@ exports.postLogout = (req, res) => {
 // GET /admin/dashboard - Panel
 exports.getDashboardPage = async (req, res) => {
     try {
-        // HATA BURADAYDI: Eski kodda burada 'db.Category.findAll()' vardı.
-        // Artık sadece Dersleri çekiyoruz.
         const courses = await db.Course.findAll({ order: [['createdAt', 'DESC']] });
         
         res.render('admin/dashboard', {

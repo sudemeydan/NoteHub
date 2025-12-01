@@ -56,7 +56,6 @@ exports.createAssignment = async (req, res) => {
     }
 };
 
-// --- YENİ FONKSİYON: Teslimleri Listeleme ---
 // GET /admin/assignments/:id/submissions - Bir ödeve ait teslimleri gösterir
 exports.getAssignmentSubmissionsPage = async (req, res) => {
     try {
@@ -90,5 +89,35 @@ exports.getAssignmentSubmissionsPage = async (req, res) => {
         console.error("Get Submissions Error:", error);
         req.flash('error_msg', 'Teslimler yüklenirken bir hata oluştu.');
         res.redirect('/admin/assignments');
+    }
+};
+
+// --- YENİ FONKSİYON: Puan Verme ---
+exports.gradeSubmission = async (req, res) => {
+    const { submissionId, score, assignmentId } = req.body;
+
+    try {
+        const submission = await db.Submission.findByPk(submissionId);
+        if (!submission) {
+            req.flash('error_msg', 'Teslim bulunamadı.');
+            return res.redirect(`/admin/assignments/${assignmentId}/submissions`);
+        }
+
+        // Puanı güncelle
+        submission.score = score;
+        await submission.save();
+
+        req.flash('success_msg', 'Not başarıyla kaydedildi.');
+        res.redirect(`/admin/assignments/${assignmentId}/submissions`);
+
+    } catch (error) {
+        console.error("Grading Error:", error);
+        req.flash('error_msg', 'Puan verilirken hata oluştu.');
+        // Hata durumunda da geri dön
+        if (assignmentId) {
+            res.redirect(`/admin/assignments/${assignmentId}/submissions`);
+        } else {
+            res.redirect('/admin/assignments');
+        }
     }
 };
